@@ -1,0 +1,230 @@
+<?php
+include("./include/connection.php");
+include("./include/header.php");
+include("./include/sidebar.php");
+
+if (!isset($_GET['claim_id'])) {
+    echo "<div class='container mt-5'><div class='alert alert-danger'>Claim ID missing.</div></div>";
+    include("./include/footer.php");
+    exit();
+}
+
+$claim_id = (int)$_GET['claim_id'];
+
+$sql = "
+SELECT ic.*,
+       fa.full_name, fa.cnic_number, fa.mobile_number, fa.bank_account,
+       fa.coverage_amount,
+       ip.plan_name, ip.deductible_rate, ip.coverage_level, ip.base_premium_rate
+FROM insurance_claims ic
+JOIN farmer_applications fa ON ic.application_id = fa.application_id
+JOIN insurance_plan ip ON fa.plan_id = ip.plan_id
+WHERE ic.claim_id = $claim_id
+";
+$result = mysqli_query($conn, $sql);
+$claim  = mysqli_fetch_assoc($result);
+
+if (!$claim) {
+    echo "<div class='container mt-5'><div class='alert alert-danger'>Claim not found.</div></div>";
+    include("./include/footer.php");
+    exit();
+}
+
+// Use stored damage_percentage (set at claim submission from damaged image count)
+$damage_pct = (int)($claim['damage_percentage'] ?? 0);
+if (!in_array($damage_pct, [20, 50, 80])) {
+    // Fallback: map from ai_confidence for older claims
+    $ai_conf    = (float)($claim['ai_confidence'] ?? 0);
+    $damage_pct = $ai_conf < 35 ? 20 : ($ai_conf < 68 ? 50 : 80);
+}
+
+$coverage_amount = (float)($claim['coverage_amount'] ?? 0);
+$deductible      = (float)($claim['deductible_rate'] ?? 0);
+$damage_loss     = $coverage_amount * ($damage_pct / 100);
+$final_payout    = $damage_loss * (1 - $deductible / 100);
+
+$msg   = '';
+$error = '';
+
+// Handle payout submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
+    if (empty($_FILES['payout_receipt']['name'])) {
+        $error = 'Please upload the payout receipt.';
+    } else {
+        $file     = $_FILES['payout_receipt'];
+        $allowed  = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
+        $max_size = 5 * 1024 * 1024;
+
+        if (!in_array($file['type'], $allowed)) {
+            $error = 'Only JPG, PNG, WEBP, or PDF files are accepted.';
+        } elseif ($file['size'] > $max_size) {
+            $error = 'File size must be under 5 MB.';
+        } else {
+            $upload_dir = __DIR__ . '/uploads/payouts/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'payout_' . $claim_id . '_' . time() . '.' . $ext;
+            $dest     = $upload_dir . $filename;
+
+            if (move_uploaded_file($file['tmp_name'], $dest)) {
+                $fname = mysqli_real_escape_string($conn, $filename);
+                mysqli_query($conn, "
+                    UPDATE insurance_claims SET
+                        damage_percentage = $damage_pct,
+                        damage_loss       = $damage_loss,
+                        final_payout      = $final_payout,
+                        payout_receipt    = '$fname',
+                        payout_date       = CURDATE(),
+                        payout_status     = 'Sent',
+                        claim_status      = 'Payout Sent'
+                    WHERE claim_id = $claim_id
+                ");
+                $msg = '<div class="alert alert-success">Payout issued successfully. Farmer can now view the receipt.</div>';
+                $claim['payout_status'] = 'Sent';
+                $claim['claim_status']  = 'Payout Sent';
+                $claim['payout_receipt'] = $filename;
+                $claim['final_payout']  = $final_payout;
+            } else {
+                $error = 'Failed to upload receipt file. Please try again.';
+            }
+        }
+    }
+}
+?>
+
+<div class="container mt-5 mb-5">
+    <h2 class="mb-1">Claim Payout Management</h2>
+    <p class="text-muted mb-4">Review the approved claim, confirm the calculated payout, upload payment receipt.</p>
+
+    <?= $msg; ?>
+    <?php if ($error): ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+
+    <div class="row g-4">
+        <!-- Claim & Farmer Info -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-primary text-white">Claim Information</div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr><td class="text-muted">Claim ID</td><td><strong>#<?= $claim_id; ?></strong></td></tr>
+                        <tr><td class="text-muted">Farmer</td><td><strong><?= htmlspecialchars($claim['full_name']); ?></strong></td></tr>
+                        <tr><td class="text-muted">CNIC</td><td><?= htmlspecialchars($claim['cnic_number']); ?></td></tr>
+                        <tr><td class="text-muted">Bank Account</td><td><?= htmlspecialchars($claim['bank_account'] ?? '—'); ?></td></tr>
+                        <tr><td class="text-muted">Plan</td><td><?= htmlspecialchars($claim['plan_name']); ?></td></tr>
+                        <tr><td class="text-muted">Loss Reason</td><td><?= htmlspecialchars($claim['reason']); ?></td></tr>
+                        <tr><td class="text-muted">Loss Date</td><td><?= $claim['loss_date']; ?></td></tr>
+                        <tr><td class="text-muted">Damaged Area</td><td><?= $claim['damaged_area']; ?> acres</td></tr>
+                        <tr><td class="text-muted">AI Result</td><td>
+                            <span class="badge <?= $claim['ai_result'] === 'damaged' ? 'bg-danger' : 'bg-success'; ?>">
+                                <?= $claim['ai_result']; ?>
+                            </span>
+                            (<?= round($claim['ai_confidence']); ?>% confidence)
+                        </td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payout Calculation -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">Payout Calculation</div>
+                <div class="card-body">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td class="text-muted">Coverage Amount</td>
+                            <td class="fw-bold">PKR <?= number_format($coverage_amount, 2); ?></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Damage % <small class="d-block text-muted">(from damaged images)</small></td>
+                            <td>
+                                <span class="badge bg-warning text-dark fs-6"><?= $damage_pct; ?>%</span>
+                                <?php
+                                $dc_label = $damage_pct === 20 ? '0–2 images damaged'
+                                          : ($damage_pct === 50 ? '3–4 images damaged' : '5–6 images damaged');
+                                ?>
+                                <small class="text-muted ms-1 d-block"><?= $dc_label; ?></small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Damage Loss</td>
+                            <td>PKR <?= number_format($damage_loss, 2); ?></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Deductible (<?= $deductible; ?>%)</td>
+                            <td class="text-danger">- PKR <?= number_format($damage_loss * $deductible / 100, 2); ?></td>
+                        </tr>
+                        <tr class="border-top">
+                            <td class="fw-bold text-dark fs-6">Final Payout</td>
+                            <td class="fw-bold text-success fs-5">PKR <?= number_format($final_payout, 2); ?></td>
+                        </tr>
+                    </table>
+
+                    <div class="mt-2 small text-muted">
+                        Formula: Coverage Amount &times; Damage% &times; (1 &minus; Deductible%)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipt Upload & Action -->
+        <div class="col-md-7">
+            <?php if ($claim['payout_status'] === 'Sent' || $claim['payout_status'] === 'Completed'): ?>
+                <div class="alert alert-success">
+                    <strong>Payout already issued.</strong>
+                    Amount: PKR <?= number_format($claim['final_payout'], 2); ?>
+                </div>
+                <?php if (!empty($claim['payout_receipt'])): ?>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-secondary text-white">Payout Receipt</div>
+                        <div class="card-body text-center">
+                            <?php
+                            $rpath = 'uploads/payouts/' . $claim['payout_receipt'];
+                            $rext  = strtolower(pathinfo($claim['payout_receipt'], PATHINFO_EXTENSION));
+                            ?>
+                            <?php if ($rext === 'pdf'): ?>
+                                <a href="<?= $rpath; ?>" target="_blank" class="btn btn-outline-primary">
+                                    View PDF Receipt
+                                </a>
+                            <?php else: ?>
+                                <img src="<?= $rpath; ?>" class="img-fluid rounded shadow" style="max-height:350px;" alt="Payout Receipt">
+                                <br>
+                                <a href="<?= $rpath; ?>" target="_blank" class="btn btn-sm btn-outline-secondary mt-2">Open Full Size</a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+            <?php else: ?>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-warning text-dark">Upload Payout Receipt</div>
+                    <div class="card-body">
+                        <p class="text-muted small">After transferring PKR <?= number_format($final_payout, 2); ?> to the farmer's account, upload the payment confirmation here.</p>
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Payout Receipt / Transfer Screenshot</label>
+                                <input type="file" name="payout_receipt" class="form-control"
+                                       accept="image/jpeg,image/png,image/webp,application/pdf" required>
+                                <div class="form-text">Accepted: JPG, PNG, WEBP, PDF — Max 5 MB</div>
+                            </div>
+                            <button type="submit" name="issue_payout" value="1"
+                                    class="btn btn-success btn-lg w-100"
+                                    onclick="return confirm('Issue payout of PKR <?= number_format($final_payout, 0); ?> to this farmer?')">
+                                <i class="fa fa-paper-plane me-2"></i>
+                                Issue Payout — PKR <?= number_format($final_payout, 2); ?>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="view_claims.php" class="btn btn-outline-secondary">&larr; Back to Claims</a>
+    </div>
+</div>
+
+<?php include("./include/footer.php"); ?>
