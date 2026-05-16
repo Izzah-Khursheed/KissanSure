@@ -35,7 +35,7 @@ $farmerName = ucwords(strtolower($farmer['name']));
     <div class="card shadow-sm mb-4">
         <div class="card-body p-4">
             <div class="d-flex align-items-center gap-4 flex-wrap">
-                <img src="/FYP_2026/profile_user.jpg"
+                <img src="/KissanSure/profile_user.jpg"
                      class="rounded-circle border"
                      style="width:100px;height:100px;object-fit:cover;">
                 <div>

@@ -139,7 +139,7 @@
                         <ul class="navbar-nav">
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                                    <img src="/FYP_2026/profile_user.jpg"
+                                    <img src="/KissanSure/profile_user.jpg"
                                         alt="User"
                                         class="rounded-circle"
                                         width="35" height="35"
