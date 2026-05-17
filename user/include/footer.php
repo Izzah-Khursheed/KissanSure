@@ -20,7 +20,7 @@
                     <a class="btn btn-link" href="index.php#about">About Us</a>
                     <a class="btn btn-link" href="insurance_plans.php">Insurance Plans</a>
                     <a class="btn btn-link" href="index.php#team">Our Team</a>
-                    <a class="btn btn-link" href="#!">Contact Us</a>
+                    <a class="btn btn-link" href="index.php#contact">Contact Us</a>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <h4 class="text-light mb-4">Insurance Plans</h4>

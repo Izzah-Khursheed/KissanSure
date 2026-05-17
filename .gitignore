@@ -1,1 +1,6 @@
- 
+# Sensitive config — never commit
+user/include/config.php
+
+# XAMPP / system files
+.DS_Store
+Thumbs.db

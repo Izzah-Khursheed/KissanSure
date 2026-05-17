@@ -236,7 +236,114 @@ include('./include/carasol.php');
 </div>
 <!-- Team End -->
 
+<!-- Contact Start -->
+<div id="contact" class="container-fluid py-5">
+    <div class="container">
+        <div class="text-center mx-auto wow fadeIn" data-wow-delay="0.1s" style="max-width: 500px;">
+            <p class="section-title bg-white text-center text-primary px-3">Contact Us</p>
+            <h1 class="display-6 mb-4">Get In Touch With Us</h1>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-7 wow fadeIn" data-wow-delay="0.2s">
+                <div id="contact-alert"></div>
+                <form id="contactForm" novalidate>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="contact_name" name="name"
+                                    required minlength="3" pattern="[A-Za-z\s]+">
+                                <label for="contact_name">Your Name *</label>
+                                <div class="invalid-feedback">Please enter your full name (letters only).</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="contact_email" name="email" required>
+                                <label for="contact_email">Your Email *</label>
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="contact_phone" name="phone" required pattern="[0-9]{4}-[0-9]{7}">
+                                <label for="contact_phone">Your Phone * (Format: 0300-1234567)</label>
+                                <div class="invalid-feedback">Please enter a valid phone number in format 0300-1234567.</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <textarea class="form-control" id="contact_query" name="query"
+                                    style="height: 150px;" required minlength="10"></textarea>
+                                <label for="contact_query">Your Query *</label>
+                                <div class="invalid-feedback">Please describe your query (at least 10 characters).</div>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center">
+                            <button class="btn btn-primary py-3 px-5" type="submit" id="contactBtn">
+                                <i class="fa fa-paper-plane me-2"></i>Send Message
+                            </button>
+                            <p class="mt-3 mb-2 text-muted" style="font-size: 0.9rem;">Don't have an email address? Contact us on WhatsApp</p>
+                            <a href="https://wa.me/923138681800" target="_blank" class="btn btn-success py-2 px-4">
+                                <i class="fab fa-whatsapp me-2"></i>Contact on WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Contact End -->
 
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+emailjs.init('71drxKAbw74Fgf-rG');
+
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = this;
+
+    // Trigger Bootstrap validation
+    form.classList.add('was-validated');
+    if (!form.checkValidity()) return;
+
+    var btn = document.getElementById('contactBtn');
+    var alertBox = document.getElementById('contact-alert');
+    var form = this;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>Sending...';
+
+    var name  = document.getElementById('contact_name').value;
+    var email = document.getElementById('contact_email').value;
+    var phone = document.getElementById('contact_phone').value;
+    var query = document.getElementById('contact_query').value;
+
+    // Save to database
+    var formData = new FormData(this);
+    fetch('contact_handler.php', { method: 'POST', body: formData });
+
+    // Send email via EmailJS
+    emailjs.send('service_bouxaom', 'template_9yspzna', {
+        from_name:  name,
+        from_email: email,
+        phone:      phone,
+        message:    query
+    })
+    .then(function() {
+        alertBox.innerHTML = '<div class="alert alert-success">Your message has been received! We will get back to you soon.</div>';
+        form.reset();
+    })
+    .catch(function(error) {
+        alertBox.innerHTML = '<div class="alert alert-danger">Failed to send message. Please try again.</div>';
+        console.error('EmailJS error:', error);
+    })
+    .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-paper-plane me-2"></i>Send Message';
+    });
+});
+</script>
 
 <?php
 include('./include/footer.php');
