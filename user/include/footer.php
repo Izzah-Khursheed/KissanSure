@@ -7,66 +7,49 @@
                     <p class="mb-2"><i class="fa fa-map-marker-alt me-3"></i>University of Agriculture, Faisalabad, Pakistan</p>
                     <p class="mb-2"><i class="fa fa-phone-alt me-3"></i>+012 345 67890</p>
                     <p class="mb-2"><i class="fa fa-envelope me-3"></i>kissansure@gmail.com</p>
-                    <div class="d-flex pt-3">
+                    <!-- <div class="d-flex pt-3">
                         <a class="btn btn-square btn-primary me-2" href="#!"><i class="fab fa-x-twitter"></i></a>
                         <a class="btn btn-square btn-primary me-2" href="#!"><i class="fab fa-facebook-f"></i></a>
                         <a class="btn btn-square btn-primary me-2" href="#!"><i class="fab fa-youtube"></i></a>
                         <a class="btn btn-square btn-primary me-2" href="#!"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
+                    </div> -->
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <h4 class="text-light mb-4">Quick Links</h4>
-                    <a class="btn btn-link" href="#!">About Us</a>
+                    <a class="btn btn-link" href="farmer_register.php">Register Now</a>
+                    <a class="btn btn-link" href="index.php#about">About Us</a>
+                    <a class="btn btn-link" href="insurance_plans.php">Insurance Plans</a>
+                    <a class="btn btn-link" href="index.php#team">Our Team</a>
                     <a class="btn btn-link" href="#!">Contact Us</a>
-                    <a class="btn btn-link" href="#!">Our Services</a>
-                    <a class="btn btn-link" href="#!">Terms & Condition</a>
-                    <a class="btn btn-link" href="#!">Support</a>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <h4 class="text-light mb-4">Business Hours</h4>
-                    <p class="mb-1">Monday - Friday</p>
-                    <h6 class="text-light">09:00 am - 07:00 pm</h6>
-                    <p class="mb-1">Saturday</p>
-                    <h6 class="text-light">09:00 am - 12:00 pm</h6>
-                    <p class="mb-1">Sunday</p>
-                    <h6 class="text-light">Closed</h6>
+                    <h4 class="text-light mb-4">Insurance Plans</h4>
+                    <?php
+                    $footer_plans = [
+                        ['label' => 'Apply Basic',    'keyword' => 'basic'],
+                        ['label' => 'Apply Standard', 'keyword' => 'standard'],
+                        ['label' => 'Apply Premium',  'keyword' => 'premium'],
+                    ];
+                    foreach ($footer_plans as $fp):
+                        $fp_result = mysqli_query($conn, "SELECT plan_id FROM insurance_plan WHERE LOWER(plan_name) LIKE '%" . $fp['keyword'] . "%' LIMIT 1");
+                        $fp_row = $fp_result ? mysqli_fetch_assoc($fp_result) : null;
+                        $fp_href = $fp_row ? "apply_plan.php?plan_id=" . $fp_row['plan_id'] : "insurance_plans.php";
+                    ?>
+                    <a class="btn btn-link" href="<?php echo $fp_href; ?>"><?php echo $fp['label']; ?></a>
+                    <?php endforeach; ?>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <h4 class="text-light mb-4">Gallery</h4>
-                    <div class="row g-2">
-                        <div class="col-4">
-                            <img class="img-fluid w-100" src="img/gallery-1.jpg" alt="">
-                        </div>
-                        <div class="col-4">
-                            <img class="img-fluid w-100" src="img/gallery-2.jpg" alt="">
-                        </div>
-                        <div class="col-4">
-                            <img class="img-fluid w-100" src="img/gallery-3.jpg" alt="">
-                        </div>
-                        <div class="col-4">
-                            <img class="img-fluid w-100" src="img/gallery-4.jpg" alt="">
-                        </div>
-                        <div class="col-4">
-                            <img class="img-fluid w-100" src="img/gallery-5.jpg" alt="">
-                        </div>
-                        <div class="col-4">
-                            <img class="img-fluid w-100" src="img/gallery-6.jpg" alt="">
-                        </div>
-                    </div>
+                <div class="col-lg-3 col-md-6 text-center">
+                    <h1 class="display-5 text-primary m-0 mb-4">KissanSure</h1>
+                    <img src="/KissanSure/logo.png" alt="KissanSure Logo" class="img-fluid" style="max-width: 150px;">
                 </div>
             </div>
             <div class="copyright pt-5">
                 <div class="row">
                     <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                        &copy; <a class="fw-semi-bold" href="#!">KissanSure</a>, All Right Reserved.
+                        &copy; <a class="fw-semi-bold" href="index.php">KissanSure 2026</a>, All Right Reserved.
                     </div>
                     <div class="col-md-6 text-center text-md-end">
-                        <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
-                        <!--/*** If you'd like to use the template without the below author’s credit link/attribution link/backlink, ***/-->
-                        <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
                         
-                        <!-- Designed By <a class="fw-semi-bold" href="https://htmlcodex.com">HTML Codex</a>. Distributed by
-                        <a class="fw-semi-bold" href="https://themewagon.com">ThemeWagon</a> -->
                     </div>
                 </div>
             </div>

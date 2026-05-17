@@ -590,9 +590,12 @@
 
 /*** Footer ***/
 .footer {
-    color: var(--bs-tertiary);
-    background: linear-gradient(rgba(5, 19, 17, .95), rgba(5, 19, 17, .95)), url(../img/bg-footer.jpg) center center no-repeat;
-    background-size: cover;
+    color: #fff;
+    background-color: #1a685b !important;
+}
+
+.footer h4, .footer h6 {
+    color: #FFAC00 !important;
 }
 
 .footer .btn.btn-link {
@@ -600,7 +603,7 @@
     margin-bottom: 5px;
     padding: 0;
     text-align: left;
-    color: var(--bs-tertiary);
+    color: #fff;
     font-weight: normal;
     text-transform: capitalize;
     transition: .3s;
@@ -615,7 +618,7 @@
 }
 
 .footer .btn.btn-link:hover {
-    color: var(--bs-light);
+    color: #FFAC00;
     letter-spacing: 1px;
     box-shadow: none;
 }
