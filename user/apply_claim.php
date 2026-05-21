@@ -120,11 +120,11 @@ if (isset($_POST['submit_claim'])) {
             $insert = "INSERT INTO insurance_claims
                 (application_id, plan_id, plan_name, loss_date, reason, evidence_image,
                  damaged_area, estimated_loss, ai_status, ai_result, ai_confidence,
-                 damage_percentage, damage_loss, final_payout, claim_status)
+                 damaged_count, damage_percentage, damage_loss, final_payout, claim_status)
                 VALUES
                 ('$application_id','$plan_id','$plan_name','$loss_date','$reason','$imagesCsv',
                  $damaged_area, $estimated_loss, 'Analyzed', '$ai_result', $ai_conf,
-                 $damage_pct, $damage_loss, $final_payout, 'AI Analyzed')";
+                 $damaged_count, $damage_pct, $damage_loss, $final_payout, 'AI Analyzed')";
 
             if (mysqli_query($conn, $insert)) {
                 $new_claim_id = mysqli_insert_id($conn);
@@ -211,8 +211,8 @@ if (isset($_POST['submit_claim'])) {
                 <!-- AREA -->
                 <div class="mb-3">
                     <label class="form-label fw-bold">Damaged Area (Acres)</label>
-                    <input type="number" step="0.1" name="damaged_area" id="damaged_area"
-                           class="form-control" required min="0.1">
+                    <input type="number" step="0.01" name="damaged_area" id="damaged_area"
+                           class="form-control" required min="0.01">
                     <div id="area_hint" class="form-text text-muted"></div>
                     <div id="area_error" class="text-danger small mt-1" style="display:none;"></div>
                 </div>
@@ -308,18 +308,6 @@ policies.forEach(p => {
     policySelect.appendChild(opt);
 });
 
-// Pre-select policy if redirected from Reapply button
-if (preselectAppId) {
-    Array.from(policySelect.options).forEach(opt => {
-        if (parseInt(opt.dataset.app) === preselectAppId) {
-            policySelect.value = opt.value;
-        }
-    });
-    if (policySelect.value) {
-        policySelect.dispatchEvent(new Event('change'));
-    }
-}
-
 const damagedAreaInput = document.getElementById("damaged_area");
 const areaHint         = document.getElementById("area_hint");
 const areaError        = document.getElementById("area_error");
@@ -385,6 +373,18 @@ policySelect.addEventListener("change", function () {
     updateLossHint();
     resetAI();
 });
+
+// Pre-select policy if redirected from Reapply button (must be after listener is registered)
+if (preselectAppId) {
+    Array.from(policySelect.options).forEach(opt => {
+        if (parseInt(opt.dataset.app) === preselectAppId) {
+            policySelect.value = opt.value;
+        }
+    });
+    if (policySelect.value) {
+        policySelect.dispatchEvent(new Event('change'));
+    }
+}
 
 damagedAreaInput.addEventListener("input", function () {
     if (maxInsuredArea !== null) {

@@ -34,7 +34,7 @@ function callFastAPI(string $url, string $tmpPath, string $origName, string $mim
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST,           true);
     curl_setopt($ch, CURLOPT_POSTFIELDS,     $postFields);
-    curl_setopt($ch, CURLOPT_TIMEOUT,        60);
+    curl_setopt($ch, CURLOPT_TIMEOUT,        120);
     $response  = curl_exec($ch);
     $curlError = curl_error($ch);
     $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -89,26 +89,6 @@ for ($i = 0; $i < 6; $i++) {
 $isEligible    = ($damagedCount >= 3);
 $damagePercent = round(($damagedCount / 6) * 100, 1);  // based on classifier count
 $aiResult      = $isEligible ? 'damaged' : 'healthy';
-
-// ---------- Step 3: segmentation DISABLED ----------
-// Uncomment and re-enable /segment endpoint in main.py + predict.py to use segmentation.
-// $segUsed = false;
-// if ($isEligible) {
-//     $segUrl      = "http://127.0.0.1:8000/segment";
-//     $segPercents = [];
-//     $segAllOk    = true;
-//     for ($i = 0; $i < 6; $i++) {
-//         $segRes = callFastAPI($segUrl, $images['tmp_name'][$i], $images['name'][$i], $images['type'][$i], $cropType);
-//         if (($segRes['http_code'] ?? 0) !== 200 || isset($segRes['error']) || !isset($segRes['damage_percent'])) {
-//             $segAllOk = false; break;
-//         }
-//         $segPercents[] = (float)$segRes['damage_percent'];
-//     }
-//     if ($segAllOk && count($segPercents) === 6) {
-//         $damagePercent = round(array_sum($segPercents) / 6, 1);
-//         $segUsed = true;
-//     }
-// }
 
 if ($isEligible) {
     $verdict = "Crop Damage Confirmed. {$damagedCount} of 6 images show damage "

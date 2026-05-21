@@ -115,11 +115,11 @@ if (isset($_POST['submit_claim'])) {
             $sql = "INSERT INTO insurance_claims
                 (application_id, plan_id, plan_name, loss_date, reason, description,
                  evidence_image, damaged_area, estimated_loss, ai_status, ai_result, ai_confidence,
-                 damage_percentage, damage_loss, final_payout, claim_status)
+                 damaged_count, damage_percentage, damage_loss, final_payout, claim_status)
                 VALUES
                 ('$application_id','$plan_id','$plan_name','$loss_date','$reason','$desc',
                  '$imagesCsv', $damaged_area, $estimated_loss, 'Analyzed', '$ai_result', $ai_conf,
-                 $damage_pct, $damage_loss, $final_payout, 'AI Analyzed')";
+                 $damaged_count, $damage_pct, $damage_loss, $final_payout, 'AI Analyzed')";
 
             if (mysqli_query($conn, $sql)) {
                 $new_claim_id = mysqli_insert_id($conn);

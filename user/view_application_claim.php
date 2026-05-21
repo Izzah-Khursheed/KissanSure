@@ -81,13 +81,13 @@ else{
                                     </p>
 
                                     <?php
-                                    $dp = (int)($row['damage_percentage'] ?? 0);
-                                    if (!in_array($dp, [20,50,80])) {
-                                        $ac = (float)($row['ai_confidence'] ?? 0);
-                                        $dp = $ac < 35 ? 20 : ($ac < 68 ? 50 : 80);
+                                    $dc = (int)($row['damaged_count'] ?? 0);
+                                    $dp = round((float)($row['ai_confidence'] ?? 0), 1);
+                                    if ($dc === 0 && $dp > 0) {
+                                        $dc = (int)round($dp / 100 * 6);
                                     }
-                                    $dpLabel = $dp === 20 ? 'Low' : ($dp === 50 ? 'Moderate' : 'Severe');
-                                    $dpBadge = $dp === 20 ? 'bg-warning text-dark' : ($dp === 50 ? 'bg-warning' : 'bg-danger');
+                                    $dpLabel = $dc <= 2 ? 'Low' : ($dc <= 4 ? 'Moderate' : 'Severe');
+                                    $dpBadge = $dc <= 2 ? 'bg-warning text-dark' : ($dc <= 4 ? 'bg-warning' : 'bg-danger');
                                     ?>
                                     <p><strong>Damage Level:</strong>
                                         <span class="badge <?= $dpBadge ?>"><?= $dpLabel ?> (<?= $dp ?>%)</span>

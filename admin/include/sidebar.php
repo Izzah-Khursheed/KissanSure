@@ -74,7 +74,7 @@
 <div class="sidebar">
 
     <div class="module-title">Farmer Management</div>
-    <a href="add_register.php">Add Farmer</a>
+    <!-- <a href="add_register.php">Add Farmer</a> -->
     <a href="view_register.php">View Farmers</a>
 
     <div class="module-title">Insurance Plans</div>
@@ -82,11 +82,11 @@
     <a href="view_plan.php">View Plans</a>
 
     <div class="module-title">Farmer Applications</div>
-    <a href="add_insurance_application.php">Application Form</a>
+    <!-- <a href="add_insurance_application.php">Application Form</a> -->
     <a href="view_insurance_application.php">View Application</a>
 
     <div class="module-title">Claims</div>
-    <a href="add_file_claim.php">File Claims</a>
+    <!-- <a href="add_file_claim.php">File Claims</a> -->
     <a href="view_claims.php">View Claims</a>
 
     <div class="module-title">Financial</div>

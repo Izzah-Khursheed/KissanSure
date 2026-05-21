@@ -27,16 +27,19 @@ if (!$data) {
 // Parse evidence_image: may be comma-separated (new) or single filename (legacy)
 $evidenceImages = array_filter(array_map('trim', explode(',', $data['evidence_image'])));
 
-// Use stored damage_percentage (mapped from damaged image count); fall back for legacy claims
-$damage_pct = (int)($data['damage_percentage'] ?? 0);
-if (!in_array($damage_pct, [20, 50, 80])) {
-    $ai_conf    = (float)($data['ai_confidence'] ?? 0);
-    $damage_pct = $ai_conf < 35 ? 20 : ($ai_conf < 68 ? 50 : 80);
+// Exact values from AI analysis
+$exact_count = (int)($data['damaged_count'] ?? 0);
+$exact_pct   = round((float)($data['ai_confidence'] ?? 0), 1);
+// Fallback for legacy claims where damaged_count was not stored
+if ($exact_count === 0 && $exact_pct > 0) {
+    $exact_count = (int)round($exact_pct / 100 * 6);
 }
-$dmg_label      = $damage_pct === 20 ? 'Low Damage'     : ($damage_pct === 50 ? 'Moderate Damage'  : 'Severe Damage');
-$dmg_badge      = $damage_pct === 20 ? 'bg-warning text-dark' : ($damage_pct === 50 ? 'bg-warning' : 'bg-danger');
-$dmg_images_lbl = $damage_pct === 20 ? '0–2 images damaged' : ($damage_pct === 50 ? '3–4 images damaged' : '5–6 images damaged');
-$isDamaged      = ($data['ai_result'] === 'damaged');
+$dmg_label = $exact_count <= 2 ? 'Low Damage' : ($exact_count <= 4 ? 'Moderate Damage' : 'Severe Damage');
+$dmg_badge = $exact_count <= 2 ? 'bg-warning text-dark' : ($exact_count <= 4 ? 'bg-warning' : 'bg-danger');
+$isDamaged = ($data['ai_result'] === 'damaged');
+
+// Tier still needed for payout label (stored damage_percentage)
+$damage_pct = (int)($data['damage_percentage'] ?? $exact_pct);
 
 $coverage_amount = (float)($data['coverage_amount'] ?? 0);
 $deductible_rate = (float)($data['deductible_rate'] ?? 0);
@@ -89,7 +92,7 @@ $final_payout    = $data['final_payout'] ? (float)$data['final_payout'] : round(
                 <h5 class="text-primary">Claim Information</h5>
                 <table class="table table-bordered">
                     <tr><th>Reason</th>            <td><?= htmlspecialchars($data['reason']) ?></td></tr>
-                    <tr><th>Short Description</th> <td><?= htmlspecialchars($data['description'] ?? '') ?></td></tr>
+                    <?php /* <tr><th>Short Description</th> <td><?= htmlspecialchars($data['description'] ?? '') ?></td></tr> */ ?>
                     <tr>
                         <th>Claim Status</th>
                         <td>
@@ -138,12 +141,12 @@ $final_payout    = $data['final_payout'] ? (float)$data['final_payout'] : round(
             <div class="col-12">
                 <h5 class="text-primary">AI Analysis Result</h5>
 
-                <div class="alert <?= $damage_pct === 80 ? 'alert-danger' : 'alert-warning' ?>">
+                <div class="alert <?= $exact_count >= 5 ? 'alert-danger' : 'alert-warning' ?>">
                     <h5 class="alert-heading">
                         AI Analysis Complete —
-                        <span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> (<?= $damage_pct ?>%)</span>
+                        <span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> (<?= $exact_pct ?>%)</span>
                     </h5>
-                    <p class="mb-1"><?= $dmg_images_lbl ?> out of 6 submitted images.</p>
+                    <p class="mb-1"><?= $exact_count ?> out of 6 submitted images show crop damage.</p>
                     <hr>
                     <p class="mb-0">Compensation calculated below based on damage level.</p>
                 </div>
@@ -159,11 +162,11 @@ $final_payout    = $data['final_payout'] ? (float)$data['final_payout'] : round(
                     </tr>
                     <tr>
                         <th>Damaged Images</th>
-                        <td><strong><?= $dmg_images_lbl ?></strong></td>
+                        <td><strong><?= $exact_count ?> out of 6</strong></td>
                     </tr>
                     <tr>
-                        <th>Assigned Damage Level</th>
-                        <td><span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> — <?= $damage_pct ?>%</span></td>
+                        <th>Damage Detected</th>
+                        <td><span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> — <?= $exact_pct ?>%</span></td>
                     </tr>
                     <tr>
                         <th>Coverage Amount</th>

@@ -322,7 +322,7 @@ Pending → AI Analyzed → Approved / Rejected
 
 **External Services:** EmailJS (contact form email), WhatsApp Business API link
 
-**Process Model:** Agile (iterative development — farmer portal, admin panel, and AI microservice developed as parallel modules)
+**Process Model:** RAD (iterative development — farmer portal, admin panel, and AI microservice developed as parallel modules)
 
 ---
 
