@@ -21,7 +21,6 @@ $farmer_id = $_SESSION['farmer_id'];
             ORDER BY ic.claim_id DESC";
 
     $result = mysqli_query($conn,$sql);
-}
 ?>
 
 <div class="container-fluid py-5">
@@ -140,7 +139,19 @@ $farmer_id = $_SESSION['farmer_id'];
         <?php
         }
         }else{
-            echo "<div class='col-12 text-center text-danger'>No Claims Found</div>";
+            echo "
+            <div class='col-12'>
+                <div class='text-center py-5'>
+                    <div class='d-inline-flex align-items-center justify-content-center rounded-circle mb-4' style='width:90px;height:90px;background:#e8f5e9;'>
+                        <i class='fas fa-shield-halved fa-2x text-success'></i>
+                    </div>
+                    <h5 class='fw-semibold mb-2'>No Claims Submitted Yet</h5>
+                    <p class='text-muted small mb-4'>You haven't filed any damage claims.<br>If your crops are damaged, submit a claim to get assessed.</p>
+                    <a href='apply_claim.php' class='btn btn-success px-4'>
+                        <i class='fas fa-plus-circle me-2'></i>Submit a Claim
+                    </a>
+                </div>
+            </div>";
         }
         ?>
         </div>
@@ -150,4 +161,4 @@ $farmer_id = $_SESSION['farmer_id'];
 
 <?php
 include("./include/footer.php");
-?>
+

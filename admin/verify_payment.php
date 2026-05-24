@@ -157,27 +157,95 @@ if (isset($_POST['action']) && $_POST['action'] === 'reject') {
             <div class="card mt-3 border-0 shadow-sm">
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="verify_payment.php?app_id=<?= $app_id; ?>&action=verify"
-                           class="btn btn-success btn-lg"
-                           onclick="return confirm('Verify this payment and activate the policy?')">
+                        <button type="button" class="btn btn-success btn-lg"
+                                data-bs-toggle="modal" data-bs-target="#verifyModal">
                             <i class="fa fa-check-circle me-2"></i> Verify Payment & Activate Policy
-                        </a>
+                        </button>
                     </div>
                     <hr>
-                    <form method="POST" action="">
+                    <form method="POST" action="" id="rejectForm">
                         <input type="hidden" name="action" value="reject">
                         <div class="mb-2">
                             <label class="form-label text-muted small">Rejection Reason (shown to farmer)</label>
-                            <input type="text" name="reject_reason" class="form-control"
+                            <input type="text" name="reject_reason" id="rejectReason" class="form-control"
                                    placeholder="e.g. Screenshot unclear, wrong amount" required>
                         </div>
-                        <button type="submit" class="btn btn-danger w-100"
-                                onclick="return confirm('Reject this payment?')">
+                        <button type="button" class="btn btn-danger w-100"
+                                onclick="openRejectModal()">
                             <i class="fa fa-times-circle me-2"></i> Reject Payment
                         </button>
                     </form>
                 </div>
             </div>
+
+            <!-- Verify Confirmation Modal -->
+            <div class="modal fade" id="verifyModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold">Confirm Verification</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                                 style="width:70px;height:70px;background:#d1fae5;">
+                                <i class="fa fa-check-circle fa-2x text-success"></i>
+                            </div>
+                            <p class="mb-1 fw-semibold">Verify this payment?</p>
+                            <p class="text-muted small">This will activate the farmer's policy immediately.</p>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <a href="verify_payment.php?app_id=<?= $app_id; ?>&action=verify"
+                               class="btn btn-success px-4">
+                                <i class="fa fa-check me-1"></i> Yes, Verify
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reject Confirmation Modal -->
+            <div class="modal fade" id="rejectModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold">Confirm Rejection</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                                 style="width:70px;height:70px;background:#fee2e2;">
+                                <i class="fa fa-times-circle fa-2x text-danger"></i>
+                            </div>
+                            <p class="mb-1 fw-semibold">Reject this payment?</p>
+                            <p class="text-muted small" id="rejectReasonDisplay"></p>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger px-4"
+                                    onclick="document.getElementById('rejectForm').submit()">
+                                <i class="fa fa-times me-1"></i> Yes, Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            function openRejectModal() {
+                const reason = document.getElementById('rejectReason').value.trim();
+                if (!reason) {
+                    document.getElementById('rejectReason').focus();
+                    document.getElementById('rejectReason').classList.add('is-invalid');
+                    return;
+                }
+                document.getElementById('rejectReason').classList.remove('is-invalid');
+                document.getElementById('rejectReasonDisplay').textContent = 'Reason: "' + reason + '"';
+                new bootstrap.Modal(document.getElementById('rejectModal')).show();
+            }
+            </script>
+
             <?php elseif ($app['status'] === 'Active'): ?>
             <div class="alert alert-success mt-3">
                 <i class="fa fa-check-circle me-2"></i>

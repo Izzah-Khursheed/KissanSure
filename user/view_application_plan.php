@@ -129,7 +129,19 @@ $farmer_id = $_SESSION['farmer_id'];
                 <?php
                     }
                 } else {
-                    echo "<div class='col-12 text-center text-danger'>No Applications Found</div>";
+                    echo "
+                    <div class='col-12'>
+                        <div class='text-center py-5'>
+                            <div class='d-inline-flex align-items-center justify-content-center rounded-circle mb-4' style='width:90px;height:90px;background:#e8f5e9;'>
+                                <i class='fas fa-file-contract fa-2x text-success'></i>
+                            </div>
+                            <h5 class='fw-semibold mb-2'>No Applications Yet</h5>
+                            <p class='text-muted small mb-4'>You haven't applied for any insurance plan yet.<br>Browse our plans and protect your crops today.</p>
+                            <a href='insurance_plans.php' class='btn btn-success px-4'>
+                                <i class='fas fa-leaf me-2'></i>Browse Plans
+                            </a>
+                        </div>
+                    </div>";
                 }
                 ?>
 
