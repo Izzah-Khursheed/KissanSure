@@ -2,35 +2,30 @@
 session_start();
 include("./include/connection.php");
 
+$login_error = '';
+
 if (isset($_POST["submit"])) {
 
-    $farmername = mysqli_real_escape_string($conn, $_POST["farmername"]);
+    $farmername    = mysqli_real_escape_string($conn, $_POST["farmername"]);
     $farmerpassword = mysqli_real_escape_string($conn, $_POST["farmerpassword"]);
 
-$sql = "SELECT * FROM users WHERE name='$farmername'";
-$result = mysqli_query($conn, $sql);
+    $sql    = "SELECT * FROM users WHERE name='$farmername'";
+    $result = mysqli_query($conn, $sql);
 
-if (mysqli_num_rows($result) == 1) {
-    $user = mysqli_fetch_assoc($result);
+    if (mysqli_num_rows($result) == 1) {
+        $user = mysqli_fetch_assoc($result);
 
-    if (password_verify($farmerpassword, $user['password'])) {
-
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['name'] = $user['name'];
-        $_SESSION['role'] = $user['role'];
-
-        // Role-based redirect
-        if ($user['role'] === 'admin') {
+        if (password_verify($farmerpassword, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['name']    = $user['name'];
+            $_SESSION['role']    = $user['role'];
             header("Location: dashboard.php");
+            exit();
         } else {
-            header("Location: dashboard.php");
-        }
-        exit();
-    }else {
-            echo '<script>alert("Password incorrect while logging in");</script>';
+            $login_error = "Incorrect password. Please try again.";
         }
     } else {
-        echo '<script>alert("User not found");</script>';
+        $login_error = "No admin account found with that username.";
     }
     mysqli_close($conn);
 }
@@ -63,6 +58,13 @@ if (mysqli_num_rows($result) == 1) {
             <h3 class="fw-bold">Welcome Back!</h3>
             <p class="text-muted">Sign in to access your dashboard</p>
         </div>
+
+        <?php if ($login_error): ?>
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3">
+            <i class="fas fa-exclamation-circle flex-shrink-0"></i>
+            <div class="small"><?= htmlspecialchars($login_error); ?></div>
+        </div>
+        <?php endif; ?>
 
         <form method="post">
 

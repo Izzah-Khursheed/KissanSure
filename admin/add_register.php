@@ -23,7 +23,7 @@ if (isset($_POST["submit"])) {
     $checkrunn = mysqli_query($conn, $checksql);
 
     if(mysqli_num_rows($checkrunn) > 0){
-        echo '<script>alert("Phone or CNIC already registered!");</script>';
+        echo "<script>showFlash('Phone or CNIC is already registered.', 'warning');</script>";
     } else {
 
         $sql = "INSERT INTO `register_farmer`(
@@ -51,9 +51,9 @@ if (isset($_POST["submit"])) {
         $runn = mysqli_query($conn, $sql);
 
         if ($runn) {
-            echo '<script>alert("Registered Successfully!");</script>';
+            echo "<script>showFlash('Farmer registered successfully!', 'success');</script>";
         } else {
-            echo '<script>alert("Error while registering!");</script>';
+            echo "<script>showFlash('Error while registering. Please try again.', 'danger');</script>";
         }
     }
 

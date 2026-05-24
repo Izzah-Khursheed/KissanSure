@@ -1,6 +1,12 @@
 <?php
 session_start();
 include("./include/connection.php");
+
+if (!isset($_SESSION['farmer_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
 include("./include/navbar.php");
 
 if (!isset($_GET['id'])) {

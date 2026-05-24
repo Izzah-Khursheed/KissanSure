@@ -1,28 +1,15 @@
 <?php
 session_start();
 include("./include/connection.php");
+
+if (!isset($_SESSION['farmer_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
 include("./include/navbar.php");
 
-// 🚫 If not logged in
-if(!isset($_SESSION['farmer_id'])){
-?>
-<div class="container-fluid py-5">
-    <div class="container text-center">
-        <p class="section-title bg-white text-center text-primary px-3">
-            My Claim Applications
-        </p>
-        <h1 class="display-6 mb-4">View Your Claims</h1>
-        <div class="alert alert-warning">
-            Please login first to view your claims.
-        </div>
-        <a href="login.php" class="btn btn-primary px-4 py-2">
-            Login Now
-        </a>
-    </div>
-</div>
-<?php
-}
-else{
+{
     $farmer_id = $_SESSION['farmer_id'];
     // ✅ Fetch claims with joins + total claim count per application
     $sql = "SELECT ic.*, fa.full_name, fa.cnic_number, ip.plan_name,
@@ -35,6 +22,7 @@ else{
             ORDER BY ic.claim_id DESC";
 
     $result = mysqli_query($conn,$sql);
+}
 ?>
 
 <div class="container-fluid py-5">
@@ -162,6 +150,5 @@ else{
 </div>
 
 <?php
-}
 include("./include/footer.php");
 ?>

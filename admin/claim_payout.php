@@ -14,7 +14,7 @@ $claim_id = (int)$_GET['claim_id'];
 $sql = "
 SELECT ic.*,
        fa.farmer_id, fa.full_name, fa.cnic_number, fa.mobile_number, fa.bank_account,
-       fa.coverage_amount,
+       fa.coverage_amount, fa.crop_insured,
        ip.plan_name, ip.deductible_rate, ip.coverage_level, ip.base_premium_rate
 FROM insurance_claims ic
 JOIN farmer_applications fa ON ic.application_id = fa.application_id
@@ -84,8 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
                 include_once __DIR__ . '/../user/include/notifications_helper.php';
                 add_notification($conn, $claim['farmer_id'], 'payout_sent',
                     'Claim Payout Sent!',
-                    'Your payout of PKR ' . number_format($final_payout, 2) . ' for claim #' . $claim_id . ' has been processed. View your receipt now.',
-                    '/KissanSure/user/view_claim_payout.php'
+                    'Your payout of PKR ' . number_format($final_payout, 2) . ' for your ' . $claim['plan_name'] . ' (' . $claim['crop_insured'] . ') claim has been processed. View your receipt now.',
+                    '/KissanSure/user/view_claim_payout.php?claim_id=' . $claim_id
                 );
                 $msg = '<div class="alert alert-success">Payout issued successfully. Farmer can now view the receipt.</div>';
                 $claim['payout_status'] = 'Sent';
@@ -208,20 +208,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
                     <div class="card-header bg-warning text-dark">Upload Payout Receipt</div>
                     <div class="card-body">
                         <p class="text-muted small">After transferring PKR <?= number_format($final_payout, 2); ?> to the farmer's account, upload the payment confirmation here.</p>
-                        <form method="POST" enctype="multipart/form-data">
+                        <form method="POST" enctype="multipart/form-data" id="payoutForm">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Payout Receipt / Transfer Screenshot</label>
                                 <input type="file" name="payout_receipt" class="form-control"
                                        accept="image/jpeg,image/png,image/webp,application/pdf" required>
                                 <div class="form-text">Accepted: JPG, PNG, WEBP, PDF — Max 5 MB</div>
                             </div>
-                            <button type="submit" name="issue_payout" value="1"
-                                    class="btn btn-success btn-lg w-100"
-                                    onclick="return confirm('Issue payout of PKR <?= number_format($final_payout, 0); ?> to this farmer?')">
+                            <button type="button" class="btn btn-success btn-lg w-100"
+                                    data-bs-toggle="modal" data-bs-target="#confirmPayoutModal">
                                 <i class="fa fa-paper-plane me-2"></i>
                                 Issue Payout — PKR <?= number_format($final_payout, 2); ?>
                             </button>
                         </form>
+
+                        <!-- Confirmation Modal -->
+                        <div class="modal fade" id="confirmPayoutModal" tabindex="-1" aria-labelledby="confirmPayoutLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title" id="confirmPayoutLabel">
+                                            <i class="fa fa-paper-plane me-2"></i>Confirm Payout
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center py-4">
+                                        <p class="mb-1 text-muted">You are about to issue a payout of</p>
+                                        <h3 class="text-success fw-bold mb-2">PKR <?= number_format($final_payout, 2); ?></h3>
+                                        <p class="mb-0">to <strong><?= htmlspecialchars($claim['full_name']); ?></strong></p>
+                                        <p class="text-muted small mb-0">Bank: <?= htmlspecialchars($claim['bank_account'] ?? '—'); ?></p>
+                                        <hr>
+                                        <p class="text-muted small mb-0">This action cannot be undone. Make sure the transfer has been completed before confirming.</p>
+                                    </div>
+                                    <div class="modal-footer justify-content-center gap-2">
+                                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-success px-4"
+                                                onclick="document.getElementById('payoutForm').submit()">
+                                            <i class="fa fa-check me-1"></i>Yes, Issue Payout
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="issue_payout" value="1" form="payoutForm">
                     </div>
                 </div>
             <?php endif; ?>

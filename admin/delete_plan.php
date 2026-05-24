@@ -1,14 +1,16 @@
 <?php
+session_start();
 include("./include/connection.php");
 
-    $id = $_GET['pid'];
+$id  = (int)$_GET['pid'];
+$sql = "DELETE FROM insurance_plan WHERE plan_id = $id";
 
-    $sql = "DELETE FROM insurance_plan WHERE plan_id = '$id'";
+if (mysqli_query($conn, $sql)) {
+    $_SESSION['flash'] = ['msg' => 'Insurance plan deleted successfully.', 'type' => 'success'];
+} else {
+    $_SESSION['flash'] = ['msg' => 'Error deleting plan. Please try again.', 'type' => 'danger'];
+}
 
-    if (mysqli_query($conn, $sql)) {
-        echo "<script>alert('Plan Deleted Successfully'); window.location.href='view_plan.php';</script>";
-    } else {
-        echo "<script>alert('Error Deleting Plan'); window.location.href='view_plan.php';</script>";
-    }
-
+header("Location: view_plan.php");
+exit();
 ?>

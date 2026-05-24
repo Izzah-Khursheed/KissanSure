@@ -1,12 +1,13 @@
 <?php
 session_start();
 include("./include/connection.php");
-include("./include/navbar.php");
 
 if (!isset($_SESSION['farmer_id'])) {
-    echo "<script>alert('Please login first'); window.location='login.php';</script>";
+    header("Location: login.php");
     exit();
 }
+
+include("./include/navbar.php");
 
 $farmer_id        = $_SESSION['farmer_id'];
 $preselect_app_id = isset($_GET['app_id']) ? (int)$_GET['app_id'] : 0;
@@ -38,7 +39,7 @@ if (isset($_POST['submit_claim'])) {
         "SELECT insured_area, coverage_amount FROM farmer_applications WHERE application_id = '$application_id' AND farmer_id = '$farmer_id'"
     ));
     if (!$app_check || $damaged_area > (float)$app_check['insured_area']) {
-        echo "<script>alert('Error: Damaged area (" . $damaged_area . " acres) cannot exceed your insured area (" . ($app_check['insured_area'] ?? 0) . " acres).');</script>";
+        echo "<script>showFlash('Damaged area (" . $damaged_area . " acres) cannot exceed your insured area (" . ($app_check['insured_area'] ?? 0) . " acres).', 'warning');</script>";
         goto end_submit;
     }
     $insured_area    = (float)$app_check['insured_area'];
@@ -46,7 +47,7 @@ if (isset($_POST['submit_claim'])) {
     $max_loss        = $insured_area > 0 ? ($damaged_area / $insured_area) * $coverage_amount : $coverage_amount;
     if ($coverage_amount > 0 && $estimated_loss > $max_loss * 1.05) {
         $max_fmt = number_format($max_loss, 0);
-        echo "<script>alert('Estimated loss is too high. For " . $damaged_area . " damaged acres, maximum realistic loss is PKR " . $max_fmt . " (proportional coverage amount).');</script>";
+        echo "<script>showFlash('Estimated loss is too high. For " . $damaged_area . " damaged acres, maximum realistic loss is PKR " . $max_fmt . ".', 'warning');</script>";
         goto end_submit;
     }
 
@@ -66,13 +67,13 @@ if (isset($_POST['submit_claim'])) {
     }
 
     if ($has_approved) {
-        echo "<script>alert('This policy already has an approved claim. You cannot file another claim.');</script>";
+        echo "<script>showFlash('This policy already has an approved claim. You cannot file another.', 'warning');</script>";
         goto end_submit;
     } elseif ($claim_count >= 2) {
-        echo "<script>alert('You have already used your reapply opportunity for this policy. No further claims are allowed.');</script>";
+        echo "<script>showFlash('You have already used your reapply opportunity for this policy. No further claims are allowed.', 'warning');</script>";
         goto end_submit;
     } elseif ($claim_count === 1 && in_array($last_status, ['AI Analyzed', 'Under Review'])) {
-        echo "<script>alert('Your previous claim for this policy is still under review. Please wait for a decision before reapplying.');</script>";
+        echo "<script>showFlash('Your previous claim is still under review. Please wait for a decision before reapplying.', 'warning');</script>";
         goto end_submit;
     }
 
@@ -94,7 +95,7 @@ if (isset($_POST['submit_claim'])) {
     $final_payout = round($damage_loss * (1 - $deductible / 100), 2);
 
     if (!isset($_FILES['evidence_images']) || count($_FILES['evidence_images']['name']) !== 6) {
-        echo "<script>alert('Please upload exactly 6 crop images.');</script>";
+        echo "<script>showFlash('Please upload exactly 6 crop images.', 'warning');</script>";
     } else {
         $ts          = time();
         $savedImages = [];
@@ -108,7 +109,7 @@ if (isset($_POST['submit_claim'])) {
             if (move_uploaded_file($_FILES['evidence_images']['tmp_name'][$i], $dest)) {
                 $savedImages[] = $newName;
             } else {
-                echo "<script>alert('Image upload failed for image " . ($i + 1) . ".');</script>";
+                echo "<script>showFlash('Image upload failed for image " . ($i + 1) . ". Please try again.', 'danger');</script>";
                 $uploadOk = false;
                 break;
             }
@@ -128,9 +129,10 @@ if (isset($_POST['submit_claim'])) {
 
             if (mysqli_query($conn, $insert)) {
                 $new_claim_id = mysqli_insert_id($conn);
-                echo "<script>alert('Claim submitted successfully. AI analysis complete — pending admin review.'); window.location='view_application_claim.php';</script>";
+                echo "<script>showFlash('Claim submitted successfully. AI analysis complete — pending admin review.', 'success'); setTimeout(function(){ window.location='view_application_claim.php'; }, 2000);</script>";
             } else {
-                echo "<script>alert('Database error: " . addslashes(mysqli_error($conn)) . "');</script>";
+                $db_err = addslashes(mysqli_error($conn));
+                echo "<script>showFlash('Database error: $db_err', 'danger');</script>";
             }
         }
     }
@@ -486,8 +488,8 @@ document.getElementById("runAI").addEventListener("click", async function () {
     const files    = Array.from(imageInput.files);
     const cropType = cropSelect.value;
 
-    if (files.length !== 6) { alert("Please select exactly 6 images first."); return; }
-    if (!cropType)           { alert("Please select a policy first."); return; }
+    if (files.length !== 6) { showFlash("Please select exactly 6 images first.", "warning"); return; }
+    if (!cropType)           { showFlash("Please select a policy first.", "warning"); return; }
 
     document.getElementById("loading").style.display = "block";
     runAIBtn.disabled = true;
@@ -503,7 +505,7 @@ document.getElementById("runAI").addEventListener("click", async function () {
         document.getElementById("loading").style.display = "none";
         runAIBtn.disabled = false;
 
-        if (data.error) { alert("AI Error: " + data.error); return; }
+        if (data.error) { showFlash("AI Error: " + data.error, "danger"); return; }
 
         // Show verdict
         const verdictBox   = document.getElementById("ai_verdict_box");
@@ -550,7 +552,7 @@ document.getElementById("runAI").addEventListener("click", async function () {
     } catch (err) {
         document.getElementById("loading").style.display = "none";
         runAIBtn.disabled = false;
-        alert("AI analysis failed: " + err.message);
+        showFlash("AI analysis failed: " + err.message, "danger");
         console.error(err);
     }
 });

@@ -3,7 +3,7 @@ include("./include/connection.php");
 
 $id = (int)$_GET['id'];
 $sql = "
-    SELECT ic.*, fa.farmer_id
+    SELECT ic.*, fa.farmer_id, fa.crop_insured
     FROM insurance_claims ic
     JOIN farmer_applications fa ON ic.application_id = fa.application_id
     WHERE ic.claim_id = $id
@@ -23,7 +23,7 @@ if ($row['claim_status'] !== 'Rejected') {
     include_once __DIR__ . '/../user/include/notifications_helper.php';
     add_notification($conn, $row['farmer_id'], 'claim_rejected',
         'Claim Rejected',
-        'Your damage claim #' . $id . ' has been rejected. Visit the claims page for details.',
+        'Your damage claim for ' . $row['crop_insured'] . ' under ' . $row['plan_name'] . ' has been rejected. Visit the claims page for details.',
         '/KissanSure/user/view_application_claim.php'
     );
 }

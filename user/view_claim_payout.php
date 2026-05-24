@@ -1,12 +1,13 @@
 <?php
 session_start();
 include('./include/connection.php');
-include('./include/navbar.php');
 
 if (!isset($_SESSION['farmer_id'])) {
-    echo "<script>alert('Please login first'); window.location='login.php';</script>";
+    header("Location: login.php");
     exit();
 }
+
+include('./include/navbar.php');
 
 if (!isset($_GET['claim_id'])) {
     echo "<div class='container mt-5'><div class='alert alert-danger'>Claim ID missing.</div></div>";
@@ -61,7 +62,7 @@ $payout_available = in_array($claim['payout_status'], ['Sent', 'Completed']);
             <!-- Payout Summary Card -->
             <div class="card shadow border-0 mb-4">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Payout Summary — Claim #<?= $claim_id; ?></h5>
+                    <h5 class="mb-0">Payout Summary</h5>
                     <span class="badge bg-white text-success"><?= $claim['payout_status']; ?></span>
                 </div>
                 <div class="card-body p-4">

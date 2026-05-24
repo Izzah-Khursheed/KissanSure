@@ -1,36 +1,33 @@
 <?php
+session_start();
 include("./include/connection.php");
+
+$signup_error   = '';
+$signup_success = '';
 
 if (isset($_POST['submit'])) {
 
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $name     = mysqli_real_escape_string($conn, $_POST['name']);
     $password = $_POST['password'];
     $confirm  = $_POST['confirm'];
 
     if ($password !== $confirm) {
-        echo "<script>alert('Passwords do not match');</script>";
+        $signup_error = "Passwords do not match. Please try again.";
     } else {
-
         $hashed = password_hash($password, PASSWORD_DEFAULT);
-
-        // Check if username already exists
-        $check = "SELECT * FROM users WHERE name='$name'";
-        $res = mysqli_query($conn, $check);
+        $check  = "SELECT * FROM users WHERE name='$name'";
+        $res    = mysqli_query($conn, $check);
 
         if (mysqli_num_rows($res) > 0) {
-            echo "<script>alert('Username already exists');</script>";
+            $signup_error = "Username already exists. Please choose a different one.";
         } else {
-
-            // Insert user without role
             $sql = "INSERT INTO users (name, password) VALUES ('$name', '$hashed')";
-
             if (mysqli_query($conn, $sql)) {
-                echo "<script>
-                    alert('User registered successfully');
-                    window.location='dashboard.php';
-                </script>";
+                $_SESSION['flash'] = ['msg' => 'Admin account created successfully.', 'type' => 'success'];
+                header("Location: dashboard.php");
+                exit();
             } else {
-                echo "<script>alert('Signup failed');</script>";
+                $signup_error = "Signup failed. Please try again.";
             }
         }
     }
@@ -53,6 +50,13 @@ if (isset($_POST['submit'])) {
 
         <h3 class="text-center mb-3">Signup</h3>
         <p class="text-center text-muted">Create an account</p>
+
+        <?php if ($signup_error): ?>
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2">
+            <i class="bi bi-x-circle-fill flex-shrink-0"></i>
+            <div class="small"><?= htmlspecialchars($signup_error); ?></div>
+        </div>
+        <?php endif; ?>
 
         <form method="post">
 

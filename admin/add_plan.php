@@ -34,10 +34,9 @@ if (isset($_POST["submit"])) {
             )";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>alert('Insurance Plan Added Successfully');</script>";
+        echo "<script>showFlash('Insurance plan added successfully.', 'success');</script>";
     } else {
-        
-        echo "<script>alert('Error Adding Plan: " . mysqli_error($conn) . "');</script>";
+        echo "<script>showFlash('Error adding plan: " . addslashes(mysqli_error($conn)) . "', 'danger');</script>";
     }
 }
 ?>

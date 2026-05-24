@@ -49,10 +49,10 @@ if (isset($_POST["submit"])) {
     $update_run = mysqli_query($conn, $up_sql);
 
     if ($update_run) {
-        echo '<script>alert("Record Updated Successfully!");</script>';
+        echo "<script>showFlash('Farmer record updated successfully!', 'success');</script>";
         header("Refresh:2; url=./view_register.php");
     } else {
-        echo '<script>alert("Error Updating Record");</script>';
+        echo "<script>showFlash('Error updating record. Please try again.', 'danger');</script>";
     }
 
     mysqli_close($conn);

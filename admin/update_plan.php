@@ -10,7 +10,7 @@ $result = mysqli_query($conn, $sql);
 $plan = mysqli_fetch_assoc($result);
 
 if (!$plan) {
-    echo "<script>alert('Plan Not Found'); window.location='view_insurance_plans.php';</script>";
+    echo "<script>showFlash('Plan not found.', 'danger'); setTimeout(function(){ window.location='view_plan.php'; }, 1500);</script>";
 }
 
 // Convert CSV crops to array
@@ -42,9 +42,9 @@ if (isset($_POST["update"])) {
         WHERE plan_id='$pid'";
 
     if (mysqli_query($conn, $update_sql)) {
-        echo "<script>alert('Plan Updated Successfully'); window.location='view_plan.php';</script>";
+        echo "<script>showFlash('Plan updated successfully!', 'success'); setTimeout(function(){ window.location='view_plan.php'; }, 1500);</script>";
     } else {
-        echo "<script>alert('Update Failed');</script>";
+        echo "<script>showFlash('Update failed. Please try again.', 'danger');</script>";
     }
 }
 ?>

@@ -2,22 +2,15 @@
 session_start();
 include("./include/connection.php");
 
-/* LOGIN CHECK */
-if (!isset($_SESSION['farmer_id'])) {
-    header("Location: login.php");
-    exit();
-}
-
-/* CHECK PLAN ID */
+/* CHECK PLAN ID — redirect before any HTML output */
 if (!isset($_GET['plan_id'])) {
     header("Location: insurance_plans.php");
     exit();
 }
 
 $selected_plan_id = (int)$_GET['plan_id'];
-$farmer_id        = $_SESSION['farmer_id'];
 
-/* FETCH SELECTED PLAN */
+/* FETCH SELECTED PLAN — redirect before any HTML output */
 $plan_query = mysqli_query($conn, "SELECT * FROM insurance_plan WHERE plan_id = $selected_plan_id");
 $plan_data  = mysqli_fetch_assoc($plan_query);
 
@@ -26,21 +19,9 @@ if (!$plan_data) {
     exit();
 }
 
-/* FETCH REGISTERED FARMER PROFILE */
-$farmer_query = mysqli_query($conn, "SELECT * FROM register_farmer WHERE farmerid = $farmer_id");
-$farmer_data  = mysqli_fetch_assoc($farmer_query);
-
-/* CALCULATE REMAINING INSURABLE AREA */
-$used_row       = mysqli_fetch_assoc(mysqli_query($conn,
-    "SELECT COALESCE(SUM(insured_area), 0) AS used
-     FROM farmer_applications WHERE farmer_id = '$farmer_id' AND status NOT IN ('Rejected')"
-));
-$farmer_field_size  = (float)($farmer_data['field_size'] ?? 0);
-$farmer_used_area   = (float)$used_row['used'];
-$farmer_remaining   = $farmer_field_size - $farmer_used_area;
-
 /* HANDLE FORM SUBMISSION — must run BEFORE any HTML output */
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application']) && isset($_SESSION['farmer_id'])) {
+    $farmer_id = $_SESSION['farmer_id'];
 
     $plan_id          = (int)$_POST['plan_id'];
     $policy_duration  = mysqli_real_escape_string($conn, $_POST["policy_duration"]);
@@ -71,6 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application']))
 
     // Total land area cap check
     if (empty($form_error)) {
+        $farmer_field_size = (float)(mysqli_fetch_assoc(mysqli_query($conn,
+            "SELECT field_size FROM register_farmer WHERE farmerid = '$farmer_id'"
+        ))['field_size'] ?? 0);
         $used_now = (float)mysqli_fetch_assoc(mysqli_query($conn,
             "SELECT COALESCE(SUM(insured_area), 0) AS used
              FROM farmer_applications WHERE farmer_id = '$farmer_id' AND status NOT IN ('Rejected')"
@@ -144,8 +128,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application']))
     endif; // end empty($form_error)
 }
 
-/* HTML output starts here — after all possible redirects */
+/* HTML output starts here */
 include("./include/navbar.php");
+
+/* LOGIN CHECK — show inline UI instead of redirect */
+if (!isset($_SESSION['farmer_id'])): ?>
+<div class="container-fluid py-5">
+    <div class="container text-center">
+        <p class="section-title bg-white text-center text-primary px-3">Crop Insurance Application</p>
+        <h1 class="display-6 mb-4">Apply for <?= htmlspecialchars($plan_data['plan_name']) ?></h1>
+        <div class="alert alert-warning d-inline-block px-5 py-3">
+            <i class="fa fa-lock me-2"></i> Please login first to apply for this insurance plan.
+        </div>
+        <br>
+        <a href="login.php" class="btn btn-primary px-4 py-2 mt-3">Login Now</a>
+    </div>
+</div>
+<?php
+include("./include/footer.php");
+exit();
+endif;
+
+/* Logged in — fetch farmer-specific data */
+$farmer_id = $_SESSION['farmer_id'];
+
+$farmer_query = mysqli_query($conn, "SELECT * FROM register_farmer WHERE farmerid = $farmer_id");
+$farmer_data  = mysqli_fetch_assoc($farmer_query);
+
+$used_row = mysqli_fetch_assoc(mysqli_query($conn,
+    "SELECT COALESCE(SUM(insured_area), 0) AS used
+     FROM farmer_applications WHERE farmer_id = '$farmer_id' AND status NOT IN ('Rejected')"
+));
+$farmer_field_size = (float)($farmer_data['field_size'] ?? 0);
+$farmer_used_area  = (float)$used_row['used'];
+$farmer_remaining  = $farmer_field_size - $farmer_used_area;
 ?>
 
 <style>

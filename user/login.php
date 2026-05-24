@@ -2,6 +2,7 @@
 session_start();
 include("./include/connection.php");
 $just_registered = isset($_GET['registered']);
+$login_error = '';
 
 if (isset($_POST["submit"])) {
 
@@ -21,11 +22,11 @@ if (isset($_POST["submit"])) {
             exit();
 
         } else {
-            echo '<script>alert("Incorrect Password!");</script>';
+            $login_error = "Incorrect password. Please try again.";
         }
 
     } else {
-        echo '<script>alert("Farmer not found!");</script>';
+        $login_error = "No account found with this phone number.";
     }
 }
 ?>
@@ -108,6 +109,13 @@ body {
         <?php if ($just_registered): ?>
         <div class="alert alert-success text-center py-2 mb-3">
             Registration successful! Please login.
+        </div>
+        <?php endif; ?>
+
+        <?php if (!empty($login_error)): ?>
+        <div class="alert alert-danger d-flex align-items-center gap-2 py-2">
+            <i class="fas fa-exclamation-circle flex-shrink-0"></i>
+            <div class="small"><?= htmlspecialchars($login_error); ?></div>
         </div>
         <?php endif; ?>
 

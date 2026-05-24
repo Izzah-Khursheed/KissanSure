@@ -1,26 +1,15 @@
 <?php
 session_start();
 include("./include/connection.php");
-include("./include/navbar.php");
 
 if (!isset($_SESSION['farmer_id'])) {
-?>
-    <div class="container-fluid py-5">
-        <div class="container text-center">
-            <p class="section-title bg-white text-center text-primary px-3">
-                My Applications
-            </p>
-            <h1 class="display-6 mb-4">View Your Insurance Applications</h1>
-            <div class="alert alert-warning">
-                Please login first to view your applications.
-            </div>
-            <a href="login.php" class="btn btn-primary px-4 py-2">
-                Login Now
-            </a>
-        </div>
-    </div>
-<?php
-} else {
+    header("Location: login.php");
+    exit();
+}
+
+include("./include/navbar.php");
+
+{
     $farmer_id = $_SESSION['farmer_id'];
     $sql = "SELECT
             *
@@ -150,6 +139,5 @@ if (!isset($_SESSION['farmer_id'])) {
         </div>
     </div>
 <?php
-}
 include("./include/footer.php");
 ?>

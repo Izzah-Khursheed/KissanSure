@@ -31,6 +31,31 @@
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+
+    <script>
+    function showFlash(msg, type) {
+        var icons = {success:'bi-check-circle-fill',danger:'bi-x-circle-fill',warning:'bi-exclamation-triangle-fill',info:'bi-info-circle-fill'};
+        var c = document.getElementById('_fc');
+        if (!c) {
+            c = document.createElement('div');
+            c.id = '_fc';
+            c.style.cssText = 'position:fixed;top:80px;right:20px;z-index:99999;width:340px;';
+            document.body.appendChild(c);
+        }
+        var d = document.createElement('div');
+        d.style.marginBottom = '8px';
+        d.className = 'alert alert-'+(type||'info')+' shadow d-flex align-items-start gap-2 p-3';
+        d.style.borderRadius = '10px';
+        d.innerHTML = '<i class="bi '+(icons[type]||'bi-info-circle-fill')+' flex-shrink-0 mt-1"></i>'
+                    + '<div class="flex-grow-1 small">'+msg+'</div>'
+                    + '<button type="button" onclick="this.closest(\'.alert\').remove()" style="background:none;border:none;padding:2px 6px;opacity:.6;font-size:1.2rem;line-height:1;cursor:pointer;">&times;</button>';
+        c.appendChild(d);
+        setTimeout(function(){
+            d.style.cssText += 'transition:opacity .4s;opacity:0;';
+            setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); }, 420);
+        }, 5000);
+    }
+    </script>
 </head>
 <style>
     .navbar .nav-link img {

@@ -44,7 +44,7 @@ if (isset($_POST["submit_application"])) {
     ))['used'];
     $remaining_now = $field_size - $used_now;
     if ($field_size > 0 && $insured_area > $remaining_now) {
-        echo "<script>alert('Cannot insure {$insured_area} acres. This farmer has {$field_size} total acres registered, {$used_now} already insured. Only " . number_format(max($remaining_now, 0), 1) . " acres remaining.');</script>";
+        echo "<script>showFlash('Cannot insure {$insured_area} acres. This farmer has {$field_size} total acres, {$used_now} already insured. Only " . number_format(max($remaining_now, 0), 1) . " acres remaining.', 'warning');</script>";
         goto end_submit;
     }
 
@@ -53,7 +53,7 @@ if (isset($_POST["submit_application"])) {
     if (isset($max_per_acre[$crop_insured]) && $insured_area > 0) {
         $max_yield = $insured_area * $max_per_acre[$crop_insured];
         if ($expected_yield > $max_yield) {
-            echo "<script>alert('Expected yield ($expected_yield maunds) is unrealistic for $insured_area acres of $crop_insured. Max is $max_yield maunds.');</script>";
+            echo "<script>showFlash('Expected yield ({$expected_yield} maunds) is unrealistic for {$insured_area} acres of {$crop_insured}. Max is {$max_yield} maunds.', 'warning');</script>";
             goto end_submit;
         }
     }
@@ -65,7 +65,7 @@ if (isset($_POST["submit_application"])) {
            AND policy_duration = '$policy_duration' AND status NOT IN ('Rejected')"
     ));
     if ($dup['cnt'] > 0) {
-        echo "<script>alert('This farmer already has an active or pending application for {$crop_insured} ({$policy_duration} season). Cannot apply again for the same crop and season.');</script>";
+        echo "<script>showFlash('This farmer already has an active or pending application for {$crop_insured} ({$policy_duration} season).', 'warning');</script>";
         goto end_submit;
     }
 
@@ -110,9 +110,9 @@ if (isset($_POST["submit_application"])) {
             WHERE application_id = $new_app_id
         ");
 
-        echo "<script>alert('Application submitted and premium calculated successfully.');</script>";
+        echo "<script>showFlash('Application submitted and premium calculated successfully.', 'success');</script>";
     } else {
-        echo "<script>alert('Error Submitting Application: " . addslashes(mysqli_error($conn)) . "');</script>";
+        echo "<script>showFlash('Error submitting application: " . addslashes(mysqli_error($conn)) . "', 'danger');</script>";
     }
     end_submit:;
     
