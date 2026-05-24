@@ -9,8 +9,7 @@ if (!isset($_SESSION['farmer_id'])) {
 
 include("./include/navbar.php");
 
-{
-    $farmer_id = $_SESSION['farmer_id'];
+$farmer_id = $_SESSION['farmer_id'];
     // ✅ Fetch claims with joins + total claim count per application
     $sql = "SELECT ic.*, fa.full_name, fa.cnic_number, ip.plan_name,
                    (SELECT COUNT(*) FROM insurance_claims ic2

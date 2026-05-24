@@ -1,6 +1,17 @@
 # Sensitive config — never commit
 user/include/config.php
 
+# User uploaded files — do not push to GitHub (privacy + repo size)
+admin/images/*
+admin/uploads/*
+user/uploads/*
+
+# Keep folder structure intact for cloned repos
+!admin/images/.gitkeep
+!admin/uploads/.gitkeep
+!user/uploads/.gitkeep
+!user/uploads/profiles/.gitkeep
+
 # XAMPP / system files
 .DS_Store
 Thumbs.db

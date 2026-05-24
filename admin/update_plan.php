@@ -3,9 +3,9 @@ include("./include/connection.php");
 include("./include/header.php");
 include("./include/sidebar.php");
 
-$pid = $_GET['pid'];
+$pid = (int)$_GET['pid'];
 
-$sql = "SELECT * FROM insurance_plan WHERE plan_id='$pid'";
+$sql = "SELECT * FROM insurance_plan WHERE plan_id=$pid";
 $result = mysqli_query($conn, $sql);
 $plan = mysqli_fetch_assoc($result);
 

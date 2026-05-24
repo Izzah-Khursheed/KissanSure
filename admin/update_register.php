@@ -4,7 +4,7 @@ include("./include/header.php");
 include("./include/sidebar.php");
 
 // Getting farmer ID from URL
-$farmerid = $_GET["upid"];
+$farmerid = (int)$_GET["upid"];
 
 // Fetching existing data
 $sql = "SELECT * FROM `register_farmer` WHERE `farmerid` = '$farmerid'";

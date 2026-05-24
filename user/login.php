@@ -1,7 +1,8 @@
 <?php
 session_start();
 include("./include/connection.php");
-$just_registered = isset($_GET['registered']);
+$just_registered  = isset($_GET['registered']);
+$just_reset       = isset($_GET['reset']);
 $login_error = '';
 
 if (isset($_POST["submit"])) {
@@ -112,6 +113,12 @@ body {
         </div>
         <?php endif; ?>
 
+        <?php if ($just_reset): ?>
+        <div class="alert alert-success text-center py-2 mb-3">
+            <i class="fas fa-check-circle me-1"></i> Password reset successfully! Please login with your new password.
+        </div>
+        <?php endif; ?>
+
         <?php if (!empty($login_error)): ?>
         <div class="alert alert-danger d-flex align-items-center gap-2 py-2">
             <i class="fas fa-exclamation-circle flex-shrink-0"></i>
@@ -129,13 +136,23 @@ body {
                        required maxlength="11" pattern="\d{11}">
             </div>
 
-            <div class="mb-3 icon-input">
+            <div class="mb-3">
                 <label class="form-label fw-semibold">Password</label>
-                
-                <input type="password" name="password"
-                       class="form-control"
-                       placeholder="Enter Password"
-                       required>
+                <div class="input-group">
+                    <input type="password" name="password" id="loginPassword"
+                           class="form-control"
+                           placeholder="Enter Password"
+                           required>
+                    <button type="button" class="btn btn-outline-secondary"
+                            onclick="togglePassword('loginPassword', this)"
+                            tabindex="-1">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="text-end mb-2">
+                <a href="forgot_password.php" class="small text-success">Forgot Password?</a>
             </div>
 
             <button type="submit" name="submit"
@@ -157,5 +174,18 @@ body {
     </div>
 </div>
 
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    const icon  = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+</script>
 </body>
 </html>

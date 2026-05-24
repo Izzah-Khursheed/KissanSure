@@ -9,8 +9,7 @@ if (!isset($_SESSION['farmer_id'])) {
 
 include("./include/navbar.php");
 
-{
-    $farmer_id = $_SESSION['farmer_id'];
+$farmer_id = $_SESSION['farmer_id'];
     $sql = "SELECT
             *
             FROM farmer_applications fa
