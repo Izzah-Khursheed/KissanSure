@@ -228,9 +228,10 @@
                                     <span><?php echo ucwords($_SESSION['farmer_name']); ?></span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="farmer_profile.php">My Profile</a></li>
+                                    <li><a class="dropdown-item" href="farmer_profile.php"><i class="fas fa-user me-2 text-muted"></i>My Profile</a></li>
+                                    <li><a class="dropdown-item" href="payment_history.php"><i class="fas fa-receipt me-2 text-muted"></i>Payment History</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
+                                    <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                                 </ul>
                             </li>
 
