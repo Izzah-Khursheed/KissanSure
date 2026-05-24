@@ -13,7 +13,7 @@ $claim_id = (int)$_GET['claim_id'];
 
 $sql = "
 SELECT ic.*,
-       fa.full_name, fa.cnic_number, fa.mobile_number, fa.bank_account,
+       fa.farmer_id, fa.full_name, fa.cnic_number, fa.mobile_number, fa.bank_account,
        fa.coverage_amount,
        ip.plan_name, ip.deductible_rate, ip.coverage_level, ip.base_premium_rate
 FROM insurance_claims ic
@@ -81,6 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
                         claim_status      = 'Payout Sent'
                     WHERE claim_id = $claim_id
                 ");
+                include_once __DIR__ . '/../user/include/notifications_helper.php';
+                add_notification($conn, $claim['farmer_id'], 'payout_sent',
+                    'Claim Payout Sent!',
+                    'Your payout of PKR ' . number_format($final_payout, 2) . ' for claim #' . $claim_id . ' has been processed. View your receipt now.',
+                    '/KissanSure/user/view_claim_payout.php'
+                );
                 $msg = '<div class="alert alert-success">Payout issued successfully. Farmer can now view the receipt.</div>';
                 $claim['payout_status'] = 'Sent';
                 $claim['claim_status']  = 'Payout Sent';

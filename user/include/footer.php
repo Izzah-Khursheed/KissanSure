@@ -73,6 +73,53 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+
+    <!-- Notification Bell JS -->
+    <script>
+    (function () {
+        var badge      = document.getElementById('notifBadge');
+        var markAllBtn = document.getElementById('markAllReadBtn');
+        var bellBtn    = document.getElementById('notifBell');
+
+        if (!bellBtn) return; // Not logged in — skip
+
+        function doMarkAll() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/KissanSure/user/mark_notification_read.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    document.querySelectorAll('.notif-unread').forEach(function (el) {
+                        el.classList.remove('notif-unread');
+                        el.classList.add('notif-read');
+                        var dot = el.querySelector('.bg-primary.rounded-circle');
+                        if (dot) dot.remove();
+                        var title = el.querySelector('.fw-semibold');
+                        if (title) { title.classList.remove('text-dark'); title.classList.add('text-muted'); }
+                    });
+                    if (badge)      badge.classList.add('d-none');
+                    if (markAllBtn) markAllBtn.classList.add('d-none');
+                }
+            };
+            xhr.send('mode=all');
+        }
+
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                doMarkAll();
+            });
+        }
+
+        // Mark all as read 1 second after dropdown opens
+        bellBtn.addEventListener('shown.bs.dropdown', function () {
+            if (badge && !badge.classList.contains('d-none')) {
+                setTimeout(doMarkAll, 1000);
+            }
+        });
+    }());
+    </script>
 </body>
 
 </html>

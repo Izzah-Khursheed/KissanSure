@@ -54,6 +54,25 @@
         color: #6c757d !important;
         opacity: 1;
     }
+
+    /* Notification bell styles */
+    #notifBell {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.13);
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        transition: background 0.2s;
+    }
+    #notifBell:hover, #notifBell:focus { background: rgba(255,255,255,0.25); }
+    .notif-unread { background-color: #eff6ff; }
+    .notif-read   { background-color: #ffffff; }
+    .notif-item:hover { background-color: #dbeafe !important; }
+    .notif-item { transition: background-color 0.15s; color: inherit; }
+    #notifBadge { font-size: 0.6rem; padding: 3px 5px; min-width: 16px; }
 </style>
 <body>
     <!-- Spinner Start -->
@@ -98,11 +117,85 @@
                         <a href="view_application_claim.php" class="nav-item nav-link">My Claims</a>
                     </div>
                    <?php if (isset($_SESSION['farmer_id'])): ?>
+                    <?php
+                        if (isset($conn)) {
+                            include_once __DIR__ . '/notifications_helper.php';
+                            notif_check_premium_reminder($conn, $_SESSION['farmer_id']);
+                            $notif_count = notif_unread_count($conn, $_SESSION['farmer_id']);
+                            $notif_items = notif_list($conn, $_SESSION['farmer_id'], 8);
+                            // Fetch farmer's profile photo
+                            $navPhotoRow = mysqli_fetch_assoc(mysqli_query($conn,
+                                "SELECT profile_photo FROM register_farmer WHERE farmerid = " . (int)$_SESSION['farmer_id']
+                            ));
+                            $navPhoto = !empty($navPhotoRow['profile_photo'])
+                                ? '/KissanSure/user/uploads/profiles/' . htmlspecialchars($navPhotoRow['profile_photo'])
+                                : '/KissanSure/profile_user.jpg';
+                        } else {
+                            $notif_count = 0;
+                            $notif_items = [];
+                            $navPhoto    = '/KissanSure/profile_user.jpg';
+                        }
+                    ?>
                     <div class="ms-auto">
-                        <ul class="navbar-nav">
+                        <ul class="navbar-nav align-items-center">
+
+                            <!-- Notification Bell -->
+                            <li class="nav-item dropdown me-2">
+                                <a class="nav-link position-relative" href="#" id="notifBell"
+                                   data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                                    <i class="bi bi-bell-fill fs-5 text-white"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger<?= $notif_count === 0 ? ' d-none' : ''; ?>"
+                                          id="notifBadge">
+                                        <?= $notif_count > 99 ? '99+' : $notif_count; ?>
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end p-0 shadow"
+                                     style="min-width:300px;max-width:360px;border-radius:10px;overflow:hidden;">
+                                    <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-primary text-white">
+                                        <span class="fw-bold small">Notifications</span>
+                                        <a href="#" id="markAllReadBtn"
+                                           class="text-white text-decoration-none small<?= $notif_count === 0 ? ' d-none' : ''; ?>">
+                                            Mark all read
+                                        </a>
+                                    </div>
+                                    <div id="notifScrollArea" style="max-height:340px;overflow-y:auto;">
+                                        <?php if (empty($notif_items)): ?>
+                                        <div class="text-center text-muted py-4">
+                                            <i class="bi bi-bell-slash d-block fs-3 mb-1 opacity-50"></i>
+                                            <small>No notifications yet</small>
+                                        </div>
+                                        <?php else: ?>
+                                            <?php foreach ($notif_items as $n): ?>
+                                            <a href="<?= htmlspecialchars($n['link'] ?? '#'); ?>"
+                                               class="d-flex align-items-start gap-2 px-3 py-2 border-bottom text-decoration-none notif-item<?= $n['is_read'] ? ' notif-read' : ' notif-unread'; ?>"
+                                               data-id="<?= (int)$n['notif_id']; ?>">
+                                                <span class="flex-shrink-0 mt-1"><?= notif_icon($n['type']); ?></span>
+                                                <div style="min-width:0;flex:1;">
+                                                    <div class="small fw-semibold <?= $n['is_read'] ? 'text-muted' : 'text-dark'; ?>">
+                                                        <?= htmlspecialchars($n['title']); ?>
+                                                    </div>
+                                                    <div class="small text-muted" style="white-space:normal;line-height:1.3;">
+                                                        <?= htmlspecialchars($n['message']); ?>
+                                                    </div>
+                                                    <div class="text-muted mt-1" style="font-size:0.68rem;">
+                                                        <?= notif_time_ago($n['created_at']); ?>
+                                                    </div>
+                                                </div>
+                                                <?php if (!$n['is_read']): ?>
+                                                <span class="flex-shrink-0 bg-primary rounded-circle mt-2"
+                                                      style="width:7px;height:7px;min-width:7px;"></span>
+                                                <?php endif; ?>
+                                            </a>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <!-- Profile Dropdown -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
-                                    <img src="/KissanSure/profile_user.jpg"
+                                    <img src="<?= $navPhoto; ?>"
                                         alt="User"
                                         class="rounded-circle"
                                         width="35" height="35"
@@ -115,6 +208,7 @@
                                     <li><a class="dropdown-item text-danger" href="logout.php">Logout</a></li>
                                 </ul>
                             </li>
+
                         </ul>
                     </div>
                     <?php else: ?>

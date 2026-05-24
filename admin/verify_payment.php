@@ -30,6 +30,8 @@ $msg = '';
 
 // Handle Verify
 if (isset($_GET['action']) && $_GET['action'] === 'verify') {
+    // Only notify if not already active (prevents duplicate on refresh)
+    $should_notify_verify = ($app['status'] !== 'Active');
     mysqli_query($conn, "
         UPDATE farmer_applications SET
             payment_status  = 'Verified',
@@ -37,6 +39,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'verify') {
             activation_date = CURDATE()
         WHERE application_id = $app_id
     ");
+    if ($should_notify_verify) {
+        include_once __DIR__ . '/../user/include/notifications_helper.php';
+        add_notification($conn, $app['farmer_id'], 'plan_active',
+            'Insurance Plan Activated!',
+            'Congratulations! Your premium payment has been verified and your insurance plan is now Active.',
+            '/KissanSure/user/view_application_plan.php'
+        );
+    }
     $msg = '<div class="alert alert-success">Payment verified. Policy is now <strong>Active</strong>.</div>';
     $app['status']          = 'Active';
     $app['payment_status']  = 'Verified';
@@ -46,6 +56,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'verify') {
 // Handle Reject
 if (isset($_POST['action']) && $_POST['action'] === 'reject') {
     $notes = mysqli_real_escape_string($conn, trim($_POST['reject_reason'] ?? ''));
+    // Only notify if payment was submitted (not already rejected)
+    $should_notify_reject = ($app['payment_status'] === 'Submitted');
     mysqli_query($conn, "
         UPDATE farmer_applications SET
             payment_status = 'Rejected',
@@ -53,6 +65,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'reject') {
             payment_notes  = '$notes'
         WHERE application_id = $app_id
     ");
+    if ($should_notify_reject) {
+        include_once __DIR__ . '/../user/include/notifications_helper.php';
+        $reason_text = $notes ? ' Reason: ' . $notes . '.' : '';
+        add_notification($conn, $app['farmer_id'], 'payment_rejected',
+            'Payment Rejected',
+            'Your premium payment was rejected.' . $reason_text . ' Please resubmit your payment proof.',
+            '/KissanSure/user/view_application_plan.php'
+        );
+    }
     $msg = '<div class="alert alert-warning">Payment rejected. Farmer will be asked to resubmit.</div>';
     $app['status']         = 'Pending Payment';
     $app['payment_status'] = 'Rejected';

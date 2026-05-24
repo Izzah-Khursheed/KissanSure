@@ -1,15 +1,50 @@
 <?php
+session_start();
 include("./include/connection.php");
-include("./include/navbar.php");
 
 if (!isset($_SESSION['farmer_id'])) {
-    echo "<script>alert('Please login first'); window.location='login.php';</script>";
+    header("Location: login.php");
     exit();
 }
 
-$farmer_id = $_SESSION['farmer_id'];
+$farmer_id = (int)$_SESSION['farmer_id'];
 
-$result1 = mysqli_query($conn, "SELECT * FROM register_farmer WHERE farmerid = '$farmer_id'");
+// Handle profile photo upload (must run before navbar so navbar shows updated photo)
+$photo_msg   = '';
+$photo_error = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] !== UPLOAD_ERR_NO_FILE) {
+    $file    = $_FILES['profile_photo'];
+    $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $photo_error = 'Upload failed. Please try again.';
+    } elseif (!in_array($file['type'], $allowed)) {
+        $photo_error = 'Only JPG, PNG, or WEBP images are allowed.';
+    } elseif ($file['size'] > 2 * 1024 * 1024) {
+        $photo_error = 'Photo must be under 2 MB.';
+    } else {
+        $upload_dir = __DIR__ . '/uploads/profiles/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = 'farmer_' . $farmer_id . '_' . time() . '.' . $ext;
+        if (move_uploaded_file($file['tmp_name'], $upload_dir . $filename)) {
+            // Delete old photo to save space
+            $old_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT profile_photo FROM register_farmer WHERE farmerid = $farmer_id"));
+            if (!empty($old_row['profile_photo'])) {
+                $old_path = $upload_dir . $old_row['profile_photo'];
+                if (file_exists($old_path)) unlink($old_path);
+            }
+            $safe = mysqli_real_escape_string($conn, $filename);
+            mysqli_query($conn, "UPDATE register_farmer SET profile_photo = '$safe' WHERE farmerid = $farmer_id");
+            $photo_msg = 'Profile photo updated successfully.';
+        } else {
+            $photo_error = 'Could not save the file. Please try again.';
+        }
+    }
+}
+
+include("./include/navbar.php");
+
+$result1 = mysqli_query($conn, "SELECT * FROM register_farmer WHERE farmerid = $farmer_id");
 $farmer  = mysqli_fetch_assoc($result1);
 
 $result2 = mysqli_query($conn,
@@ -31,13 +66,44 @@ $farmerName = ucwords(strtolower($farmer['name']));
 
 <div class="container py-5">
 
+    <?php if ($photo_msg): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($photo_msg); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+    <?php if ($photo_error): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($photo_error); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <?php endif; ?>
+
     <!-- Profile Header -->
     <div class="card shadow-sm mb-4">
         <div class="card-body p-4">
             <div class="d-flex align-items-center gap-4 flex-wrap">
-                <img src="/KissanSure/profile_user.jpg"
-                     class="rounded-circle border"
-                     style="width:100px;height:100px;object-fit:cover;">
+                <?php
+                $profilePhoto = !empty($farmer['profile_photo'])
+                    ? '/KissanSure/user/uploads/profiles/' . htmlspecialchars($farmer['profile_photo'])
+                    : '/KissanSure/profile_user.jpg';
+                ?>
+                <form method="POST" enctype="multipart/form-data" class="position-relative flex-shrink-0">
+                    <img src="<?= $profilePhoto; ?>"
+                         id="profilePreview"
+                         class="rounded-circle border"
+                         style="width:100px;height:100px;object-fit:cover;">
+                    <label for="photoInput"
+                           class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                           style="width:30px;height:30px;cursor:pointer;border:2px solid #fff !important;"
+                           title="Change photo">
+                        <i class="bi bi-camera-fill" style="font-size:0.75rem;"></i>
+                    </label>
+                    <input type="file" id="photoInput" name="profile_photo"
+                           accept="image/jpeg,image/png,image/webp"
+                           style="display:none;"
+                           onchange="previewAndSubmit(this)">
+                </form>
                 <div>
                     <h3 class="mb-1 fw-bold"><?= htmlspecialchars($farmerName) ?></h3>
                     <p class="mb-1 text-muted"><i class="fa fa-id-card me-1"></i> CNIC: <?= htmlspecialchars($farmer['cnic']) ?></p>
@@ -209,5 +275,17 @@ $farmerName = ucwords(strtolower($farmer['name']));
     </div><!-- /row -->
 
 </div>
+
+<script>
+function previewAndSubmit(input) {
+    if (!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById('profilePreview').src = e.target.result;
+    };
+    reader.readAsDataURL(input.files[0]);
+    input.form.submit();
+}
+</script>
 
 <?php include("./include/footer.php"); ?>
