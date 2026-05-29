@@ -52,7 +52,7 @@ function callFastAPI(string $url, string $tmpPath, string $origName, string $mim
 }
 
 // ---------- Step 1: classify all 6 images ----------
-$classifyUrl  = "http://127.0.0.1:8000/analyze";
+$classifyUrl  = getenv('AI_API_URL') ?: "http://127.0.0.1:8000/analyze";
 $imageResults = [];
 $damagedCount = 0;
 $firstDamagedIdx = -1;

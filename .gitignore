@@ -1,6 +1,3 @@
-# Sensitive config — never commit
-user/include/config.php
-
 # User uploaded files — do not push to GitHub (privacy + repo size)
 admin/images/*
 admin/uploads/*
@@ -17,3 +14,5 @@ user/uploads/*
 Thumbs.db
 tobeadd.md
 UI.md
+report.md
+defence.md
