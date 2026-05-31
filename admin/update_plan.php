@@ -81,7 +81,7 @@ if (isset($_POST["update"])) {
                 <select name="applicable_crops[]" class="form-select" multiple>
 
                     <?php
-                    $all_crops = ["Wheat", "Rice", "Maize", "Cotton", "Soybean", "Other"];
+                    $all_crops = ["Wheat", "Rice"]; // Future crops: "Maize", "Cotton", "Soybean", "Other"
 
                     foreach ($all_crops as $crop) {
                         $selected = in_array($crop, $selected_crops) ? "selected" : "";

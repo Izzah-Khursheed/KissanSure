@@ -56,7 +56,7 @@ if (isset($_POST["submit"])) {
 
         <div class="text-center mb-4">
             <h3 class="fw-bold">Welcome Back!</h3>
-            <p class="text-muted">Sign in to access your dashboard</p>
+            <p class="text-muted">Sign in to access the admin panel</p>
         </div>
 
         <?php if ($login_error): ?>
@@ -70,14 +70,14 @@ if (isset($_POST["submit"])) {
 
             <div class="mb-3">
                 <label class="form-label">
-                    <i class="fas fa-user"></i> Farmer Name
+                    <i class="fas fa-user"></i> Username
                 </label>
                 <input type="text" name="farmername" class="form-control" required>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">
-                    <i class="fas fa-lock"></i> Farmer Password
+                    <i class="fas fa-lock"></i> Password
                 </label>
                 <input type="password" name="farmerpassword" class="form-control" required>
             </div>
@@ -85,13 +85,6 @@ if (isset($_POST["submit"])) {
             <button type="submit" name="submit" class="btn btn-primary w-100">
                 Login
             </button>
-
-            <div class="text-center mt-3">
-                <small class="text-muted">
-                    Don’t have an account?
-                    <a href="./register_user.php">Sign up</a>
-                </small>
-            </div>
 
         </form>
 

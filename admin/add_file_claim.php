@@ -11,7 +11,7 @@ while ($f = mysqli_fetch_assoc($farmers_result)) {
 }
 
 $policies_sql    = "SELECT fa.application_id, fa.full_name, fa.plan_id,
-                    fa.crop_insured, fa.insured_area, fa.coverage_amount, ip.plan_name
+                    fa.crop_insured, fa.insured_area, fa.coverage_amount, ip.plan_name, ip.deductible_rate
                     FROM farmer_applications fa
                     JOIN insurance_plan ip ON fa.plan_id = ip.plan_id
                     WHERE fa.status = 'Active'";
@@ -60,28 +60,27 @@ if (isset($_POST['submit_claim'])) {
     $ai_result     = mysqli_real_escape_string($conn, $_POST['ai_result_hidden']);
     $ai_conf       = (float)$_POST['ai_conf_hidden'];
     $damaged_count = (int)($_POST['damaged_count_hidden'] ?? 0);
-    $damage_pct    = (int)round($damaged_count / 6 * 100);
 
-    // Pre-calculate payout at submission
-    $payout_data  = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT fa.coverage_amount, ip.deductible_rate
+    // Fetch all policy data in one query
+    $policy_data  = mysqli_fetch_assoc(mysqli_query($conn,
+        "SELECT fa.coverage_amount, fa.insured_area, ip.deductible_rate
          FROM farmer_applications fa
          JOIN insurance_plan ip ON fa.plan_id = ip.plan_id
          WHERE fa.application_id = '$application_id'"
     ));
-    $cov_amt      = $payout_data ? round((float)$payout_data['coverage_amount'], 2) : 0;
-    $deductible   = $payout_data ? (float)$payout_data['deductible_rate'] : 0;
+    $cov_amt      = $policy_data ? round((float)$policy_data['coverage_amount'], 2) : 0;
+    $insured_area = $policy_data ? (float)$policy_data['insured_area'] : 0;
+    $deductible   = $policy_data ? (float)$policy_data['deductible_rate'] : 0;
+
+    // Area validation cap
+    $max_loss = ($insured_area > 0) ? ($damaged_area / $insured_area) * $cov_amt : 0;
+
+    // damage_pct = (damaged_area / insured_area) × (damaged_count / 6) × 100
+    $area_ratio   = ($insured_area > 0) ? min($damaged_area / $insured_area, 1.0) : 1.0;
+    $ai_pct       = $damaged_count / 6 * 100;
+    $damage_pct   = round($area_ratio * $ai_pct, 2);
     $damage_loss  = round($cov_amt * ($damage_pct / 100), 2);
     $final_payout = round($damage_loss * (1 - $deductible / 100), 2);
-
-    $area_check = mysqli_fetch_assoc(mysqli_query($conn,
-        "SELECT insured_area, coverage_amount FROM farmer_applications WHERE application_id = '$application_id'"
-    ));
-    $insured_area    = $area_check ? (float)$area_check['insured_area']    : 0;
-    $coverage_amount = $area_check ? (float)$area_check['coverage_amount'] : 0;
-    $max_loss        = ($insured_area > 0 && $coverage_amount > 0)
-                       ? ($damaged_area / $insured_area) * $coverage_amount
-                       : 0;
 
     if ($insured_area > 0 && $damaged_area > $insured_area) {
         echo "<script>showFlash('Damaged area ({$damaged_area} acres) cannot exceed the insured area ({$insured_area} acres).', 'warning');</script>";
@@ -253,6 +252,8 @@ if (isset($_POST['submit_claim'])) {
                 <small id="ai_image_summary"></small>
             </div>
             <div id="ai_image_results" class="row g-2 mt-1"></div>
+            <!-- Calculation breakdown -->
+            <div id="ai_breakdown" class="mt-3"></div>
         </div>
 
         <!-- Hidden Fields -->
@@ -273,6 +274,10 @@ if (isset($_POST['submit_claim'])) {
 </div>
 
 <script>
+let currentInsuredArea    = 0;
+let currentCoverageAmount = 0;
+let currentDeductibleRate = 0;
+
 // ---- Farmer → Policy cascade ----
 document.getElementById("farmer_select").addEventListener("change", function () {
     const selectedAppId = this.value;
@@ -297,6 +302,7 @@ document.getElementById("farmer_select").addEventListener("change", function () 
         opt.setAttribute("data-plan-name",        p.plan_name);
         opt.setAttribute("data-insured-area",     p.insured_area);
         opt.setAttribute("data-coverage-amount",  p.coverage_amount);
+        opt.setAttribute("data-deductible-rate",  p.deductible_rate);
         policySelect.appendChild(opt);
     });
     policySelect.disabled = false;
@@ -330,6 +336,10 @@ document.getElementById("policy_select").addEventListener("change", function () 
 
     const insuredArea    = parseFloat(sel.getAttribute("data-insured-area"))    || 0;
     const coverageAmount = parseFloat(sel.getAttribute("data-coverage-amount")) || 0;
+    currentDeductibleRate = parseFloat(sel.getAttribute("data-deductible-rate")) || 0;
+    currentCoverageAmount = coverageAmount;
+
+    currentInsuredArea = insuredArea;
 
     if (insuredArea > 0) {
         areaHint.textContent = `Insured area for this policy: ${insuredArea} acres. Damaged area cannot exceed this.`;
@@ -458,6 +468,7 @@ function resetAI() {
     document.getElementById("ai_conf_hidden").value           = "";
     document.getElementById("is_eligible_hidden").value       = "false";
     document.getElementById("submitBtn").disabled             = true;
+    document.getElementById("ai_breakdown").innerHTML         = "";
 }
 
 // ---- Run AI Analysis ----
@@ -493,17 +504,20 @@ document.getElementById("runAI").addEventListener("click", async function () {
 
         verdictBox.style.display = "block";
 
-        const dc = data.damaged_count || 0;
-        const dmgPct   = Math.round(dc / 6 * 100);
-        const dmgLabel = dc <= 2 ? 'Low Damage' : (dc <= 4 ? 'Moderate Damage' : 'Severe Damage');
+        const dc        = data.damaged_count || 0;
+        const area      = parseFloat(document.getElementById("damaged_area").value) || 0;
+        const areaRatio = (currentInsuredArea > 0) ? Math.min(area / currentInsuredArea, 1.0) : 1.0;
+        const aiPct     = Math.round(dc / 6 * 100);
+        const dmgPct    = Math.round(areaRatio * aiPct * 100) / 100;
+        const dmgLabel  = dc <= 2 ? 'Low Damage' : (dc <= 4 ? 'Moderate Damage' : 'Severe Damage');
         verdictAlert.className   = dc <= 2 ? 'alert alert-warning' : (dc <= 4 ? 'alert alert-warning' : 'alert alert-danger');
-        verdictTitle.textContent = `AI Analysis Complete — ${dmgLabel} (${dmgPct}%)`;
-        verdictText.textContent  = `${dc} out of 6 images show crop damage. Estimated damage: ${dmgPct}%. Admin will review this claim and make the final decision.`;
+        verdictTitle.textContent = `AI Analysis Complete — ${dmgLabel} (${dmgPct}% Combined Damage)`;
+        verdictText.textContent  = `${dc}/6 images classified as damaged. See breakdown below for how the combined damage percentage and estimated payout are calculated.`;
 
         document.getElementById("damaged_count_hidden").value = dc;
 
         imgSummary.textContent =
-            `Damaged images: ${dc} out of 6 | ${dmgLabel} — ${dmgPct}%`;
+            `Damaged images: ${dc} out of 6 | ${dmgLabel} — ${dmgPct}% combined damage`;
 
         imgResults.innerHTML = "";
         (data.image_results || []).forEach(r => {
@@ -515,6 +529,75 @@ document.getElementById("runAI").addEventListener("click", async function () {
             col.innerHTML = `<small class="d-block">Img ${r.image}</small>${badge}<br><small class="text-muted">Conf: ${r.confidence}%</small>`;
             imgResults.appendChild(col);
         });
+
+        // ---- Calculation Breakdown ----
+        const damageLoss  = currentCoverageAmount > 0 ? Math.round(currentCoverageAmount * dmgPct / 100) : null;
+        const finalPayout = (damageLoss !== null && currentDeductibleRate > 0)
+            ? Math.round(damageLoss * (1 - currentDeductibleRate / 100)) : null;
+        const deductAmt   = (damageLoss !== null && currentDeductibleRate > 0)
+            ? Math.round(damageLoss * currentDeductibleRate / 100) : null;
+
+        let breakdownHtml = `
+            <div class="card border-secondary">
+                <div class="card-header bg-secondary text-white py-2 fw-bold small">
+                    Damage Calculation Breakdown
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm table-bordered mb-0 small">
+                        <thead class="table-light">
+                            <tr><th>Parameter</th><th>Value</th><th>Formula</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AI Image Score</td>
+                                <td><strong>${aiPct}%</strong></td>
+                                <td class="text-muted">${dc} damaged / 6 total × 100</td>
+                            </tr>
+                            <tr>
+                                <td>Area Ratio</td>
+                                <td><strong>${(areaRatio * 100).toFixed(2)}%</strong></td>
+                                <td class="text-muted">${area} damaged / ${currentInsuredArea} insured acres</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><strong>Combined Damage %</strong></td>
+                                <td><strong>${dmgPct}%</strong></td>
+                                <td class="text-muted">AI ${aiPct}% × Area ${(areaRatio * 100).toFixed(2)}%</td>
+                            </tr>`;
+
+        if (currentCoverageAmount > 0 && damageLoss !== null) {
+            breakdownHtml += `
+                            <tr>
+                                <td>Coverage Amount</td>
+                                <td><strong>PKR ${Math.round(currentCoverageAmount).toLocaleString()}</strong></td>
+                                <td class="text-muted">From plan</td>
+                            </tr>
+                            <tr>
+                                <td>Damage Loss</td>
+                                <td><strong>PKR ${damageLoss.toLocaleString()}</strong></td>
+                                <td class="text-muted">Coverage × ${dmgPct}%</td>
+                            </tr>`;
+        }
+        if (currentDeductibleRate > 0 && deductAmt !== null && finalPayout !== null) {
+            breakdownHtml += `
+                            <tr>
+                                <td>Deductible (${currentDeductibleRate}%)</td>
+                                <td><strong>− PKR ${deductAmt.toLocaleString()}</strong></td>
+                                <td class="text-muted">Damage loss × ${currentDeductibleRate}%</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>Estimated Payout</strong></td>
+                                <td><strong class="text-success">PKR ${finalPayout.toLocaleString()}</strong></td>
+                                <td class="text-muted">Damage loss − deductible</td>
+                            </tr>`;
+        }
+
+        breakdownHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+
+        document.getElementById("ai_breakdown").innerHTML = breakdownHtml;
 
         document.getElementById("ai_result_hidden").value   = data.ai_result;
         document.getElementById("ai_conf_hidden").value     = data.ai_confidence;

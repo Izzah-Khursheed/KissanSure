@@ -30,7 +30,8 @@ $result = mysqli_query($conn, $sql);
                 <th>Photo</th>
                 <th>Claim Status</th>
                 <th>Payout Status</th>
-                <th>AI Verdict</th>
+                <th>AI Result</th>
+                <th>Damage %</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -83,12 +84,23 @@ $result = mysqli_query($conn, $sql);
 
                 <td>
                     <?php if ($row['ai_status'] === 'Analyzed'): ?>
-                        <span class="badge bg-info"><?= $row['ai_result']; ?></span>
-                        <?php if ($row['ai_confidence']): ?>
-                            <br><small class="text-muted"><?= round($row['ai_confidence']); ?>%</small>
-                        <?php endif; ?>
+                        <span class="badge <?= $row['ai_result'] === 'damaged' ? 'bg-danger' : 'bg-success' ?>">
+                            <?= ucfirst($row['ai_result']); ?>
+                        </span>
                     <?php else: ?>
-                        <span class="badge bg-secondary">Not Analyzed</span>
+                        <span class="badge bg-secondary">Pending</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if ($row['ai_status'] === 'Analyzed'): ?>
+                        <?php
+                        $displayPct = $row['damage_percentage'] ?? $row['ai_confidence'];
+                        $dc = (int)($row['damaged_count'] ?? 0);
+                        $dpBadge = $dc <= 2 ? 'bg-warning text-dark' : ($dc <= 4 ? 'bg-warning' : 'bg-danger');
+                        ?>
+                        <span class="badge <?= $dpBadge ?>"><?= round($displayPct, 1); ?>%</span>
+                    <?php else: ?>
+                        <span class="text-muted">—</span>
                     <?php endif; ?>
                 </td>
 

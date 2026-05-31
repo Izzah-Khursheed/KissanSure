@@ -98,12 +98,33 @@ $farmer_id = $_SESSION['farmer_id'];
                                             <p>
                                                 <strong>Action:</strong><br>
                                                 <?php
-                                                if (in_array($row['status'], ['Pending Payment', 'Payment Submitted', 'Active'])) {
+                                                if ($row['status'] === 'Pending Payment') {
+                                                ?>
+                                                    <a href="view_application_invoice.php?id=<?= $row['application_id']; ?>"
+                                                       class="btn btn-sm btn-outline-primary mt-1">
+                                                        <i class="fa fa-file-invoice me-1"></i> View Invoice
+                                                    </a>
+                                                    <a href="submit_payment.php?app_id=<?= $row['application_id']; ?>"
+                                                       class="btn btn-sm btn-success mt-1">
+                                                        <i class="fa fa-credit-card me-1"></i> Submit Payment
+                                                    </a>
+                                                <?php
+                                                } elseif ($row['status'] === 'Payment Submitted') {
                                                 ?>
                                                     <a href="view_application_invoice.php?id=<?= $row['application_id']; ?>"
                                                        class="btn btn-sm btn-primary mt-1">
-                                                        <i class="fa fa-file-invoice me-1"></i>
-                                                        <?= $row['status'] === 'Pending Payment' ? 'View Invoice & Pay' : 'View Invoice'; ?>
+                                                        <i class="fa fa-file-invoice me-1"></i> View Invoice
+                                                    </a>
+                                                <?php
+                                                } elseif ($row['status'] === 'Active') {
+                                                ?>
+                                                    <a href="view_application_invoice.php?id=<?= $row['application_id']; ?>"
+                                                       class="btn btn-sm btn-primary mt-1">
+                                                        <i class="fa fa-file-invoice me-1"></i> View Invoice
+                                                    </a>
+                                                    <a href="apply_claim.php?app_id=<?= $row['application_id']; ?>"
+                                                       class="btn btn-sm btn-warning mt-1">
+                                                        <i class="fa fa-hand-holding-usd me-1"></i> Apply for Claim
                                                     </a>
                                                 <?php
                                                 } elseif ($row['status'] === 'Rejected') {

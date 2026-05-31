@@ -86,17 +86,17 @@ for ($i = 0; $i < 6; $i++) {
 }
 
 // ---------- Step 2: decide eligibility & build verdict ----------
-$isEligible    = ($damagedCount >= 3);
+$isEligible    = ($damagedCount > 0);
 $damagePercent = round(($damagedCount / 6) * 100, 1);  // based on classifier count
 $aiResult      = $isEligible ? 'damaged' : 'healthy';
 
 if ($isEligible) {
-    $verdict = "Crop Damage Confirmed. {$damagedCount} of 6 images show damage "
-             . "({$damagePercent}%). This claim has been AUTO-APPROVED.";
+    $verdict = "Crop Damage Detected. {$damagedCount} of 6 images show damage "
+             . "({$damagePercent}%). Damage percentage and estimated payout calculated. "
+             . "Claim will be reviewed by admin for final decision.";
 } else {
-    $verdict = "Insufficient Damage Detected. Only {$damagedCount} of 6 images show damage "
-             . "({$damagePercent}%). Minimum 3 images (50%) required. "
-             . "This claim has been AUTO-REJECTED.";
+    $verdict = "No Damage Detected. All 6 images classified as healthy. "
+             . "No crop damage found — claim is not eligible for payout.";
 }
 
 echo json_encode([

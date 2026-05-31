@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-
-    <style>
+<style>
         /* Sidebar */
         .sidebar {
             width: 240px;
@@ -55,15 +48,12 @@
             z-index: 10;
         }
     </style>
-</head>
-<body>
 
 <!-- TOP NAVBAR -->
 <nav class="navbar navbar-dark bg-primary">
     <div class="container-fluid">
         <a href="dashboard.php" class="navbar-brand fw-bold">Admin Dashboard</a>
         <div>
-            <a href="signup.php" class="btn btn-success btn-sm me-2">Signup</a>
             <a href="login.php" class="btn btn-light btn-sm">Logout</a>
         </div>
     </div>
@@ -74,7 +64,7 @@
 <div class="sidebar">
 
     <div class="module-title">Farmer Management</div>
-    <!-- <a href="add_register.php">Add Farmer</a> -->
+    <a href="add_register.php">Add Farmer</a>
     <a href="view_register.php">View Farmers</a>
 
     <div class="module-title">Insurance Plans</div>
@@ -82,18 +72,16 @@
     <a href="view_plan.php">View Plans</a>
 
     <div class="module-title">Farmer Applications</div>
-    <!-- <a href="add_insurance_application.php">Application Form</a> -->
+    <a href="add_insurance_application.php">Application Form</a>
     <a href="view_insurance_application.php">View Application</a>
 
     <div class="module-title">Claims</div>
-    <!-- <a href="add_file_claim.php">File Claims</a> -->
+    <a href="add_file_claim.php">File Claims</a>
     <a href="view_claims.php">View Claims</a>
 
     <div class="module-title">Financial</div>
     <a href="manage_rates.php">Crop Market Rates</a>
 
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <div class="main-content">

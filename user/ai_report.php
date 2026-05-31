@@ -15,7 +15,7 @@ if (!isset($_GET['id'])) {
 }
 
 $id  = (int)$_GET['id'];
-$sql = "SELECT ic.*, fa.full_name, fa.crop_insured, fa.coverage_amount,
+$sql = "SELECT ic.*, fa.full_name, fa.crop_insured, fa.coverage_amount, fa.insured_area,
                ip.plan_name, ip.deductible_rate
         FROM insurance_claims ic
         JOIN farmer_applications fa ON ic.application_id = fa.application_id
@@ -44,8 +44,12 @@ $dmg_label = $exact_count <= 2 ? 'Low Damage' : ($exact_count <= 4 ? 'Moderate D
 $dmg_badge = $exact_count <= 2 ? 'bg-warning text-dark' : ($exact_count <= 4 ? 'bg-warning' : 'bg-danger');
 $isDamaged = ($data['ai_result'] === 'damaged');
 
-// Tier still needed for payout label (stored damage_percentage)
-$damage_pct = (int)($data['damage_percentage'] ?? $exact_pct);
+// Breakdown values
+$ai_pct       = round((float)($data['ai_confidence'] ?? 0), 1);   // raw AI image score (%)
+$insured_area = (float)($data['insured_area'] ?? 0);
+$damaged_area = (float)($data['damaged_area'] ?? 0);
+$area_ratio   = $insured_area > 0 ? round(($damaged_area / $insured_area) * 100, 2) : 100;
+$damage_pct   = round((float)($data['damage_percentage'] ?? $ai_pct), 2); // combined (area × AI)
 
 // Calculate payout from stored values or compute on the fly
 $coverage_amount = (float)($data['coverage_amount'] ?? 0);
@@ -159,9 +163,10 @@ $final_payout    = $data['final_payout'] ? (float)$data['final_payout'] : round(
                         <div class="alert <?= $exact_count >= 5 ? 'alert-danger' : 'alert-warning' ?>">
                             <h5 class="alert-heading">
                                 AI Analysis Complete —
-                                <span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> (<?= $exact_pct ?>%)</span>
+                                <span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> (<?= $damage_pct ?>% Combined Damage)</span>
                             </h5>
-                            <p class="mb-1"><?= $exact_count ?> out of 6 submitted images show crop damage.</p>
+                            <p class="mb-1"><?= $exact_count ?> out of 6 submitted images classified as damaged (AI score: <?= $ai_pct ?>%).
+                               Combined with field area (<?= $damaged_area ?>/<?= $insured_area ?> acres), final damage is <strong><?= $damage_pct ?>%</strong>.</p>
                             <hr>
                             <p class="mb-0">Your claim is pending admin review. Compensation is calculated below.</p>
                         </div>
@@ -176,19 +181,30 @@ $final_payout    = $data['final_payout'] ? (float)$data['final_payout'] : round(
                                 </td>
                             </tr>
                             <tr>
-                                <th>Damaged Images</th>
-                                <td><strong><?= $exact_count ?> out of 6</strong></td>
+                                <th>Damaged Images (AI Score)</th>
+                                <td><strong><?= $exact_count ?> / 6 = <?= $ai_pct ?>%</strong></td>
                             </tr>
                             <tr>
-                                <th>Damage Detected</th>
-                                <td><span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> — <?= $exact_pct ?>%</span></td>
+                                <th>Damaged Field Area (Area Ratio)</th>
+                                <td><strong><?= $damaged_area ?> / <?= $insured_area ?> acres = <?= $area_ratio ?>%</strong></td>
+                            </tr>
+                            <tr class="table-warning">
+                                <th>Combined Damage %
+                                    <small class="text-muted d-block fw-normal">AI Score × Area Ratio</small>
+                                </th>
+                                <td>
+                                    <span class="badge <?= $dmg_badge ?> fs-6"><?= $dmg_label ?> — <?= $damage_pct ?>%</span>
+                                    <small class="text-muted d-block"><?= $ai_pct ?>% × <?= $area_ratio ?>% = <?= $damage_pct ?>%</small>
+                                </td>
                             </tr>
                             <tr>
                                 <th>Coverage Amount</th>
                                 <td>PKR <?= number_format($coverage_amount, 2) ?></td>
                             </tr>
                             <tr>
-                                <th>Damage Loss <small class="text-muted">(Coverage × <?= $damage_pct ?>%)</small></th>
+                                <th>Damage Loss
+                                    <small class="text-muted d-block fw-normal">Coverage × <?= $damage_pct ?>%</small>
+                                </th>
                                 <td>PKR <?= number_format($damage_loss, 2) ?></td>
                             </tr>
                             <tr>

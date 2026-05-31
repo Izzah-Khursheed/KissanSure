@@ -30,18 +30,12 @@ if (!$claim) {
     exit();
 }
 
-// Use stored damage_percentage (set at claim submission from damaged image count)
-$damage_pct = (int)($claim['damage_percentage'] ?? 0);
-if (!in_array($damage_pct, [20, 50, 80])) {
-    // Fallback: map from ai_confidence for older claims
-    $ai_conf    = (float)($claim['ai_confidence'] ?? 0);
-    $damage_pct = $ai_conf < 35 ? 20 : ($ai_conf < 68 ? 50 : 80);
-}
-
+// Use stored values calculated at submission time
+$damage_pct      = (float)($claim['damage_percentage'] ?? 0);
 $coverage_amount = (float)($claim['coverage_amount'] ?? 0);
 $deductible      = (float)($claim['deductible_rate'] ?? 0);
-$damage_loss     = $coverage_amount * ($damage_pct / 100);
-$final_payout    = $damage_loss * (1 - $deductible / 100);
+$damage_loss     = (float)($claim['damage_loss']  ?? ($coverage_amount * $damage_pct / 100));
+$final_payout    = (float)($claim['final_payout'] ?? ($damage_loss * (1 - $deductible / 100)));
 
 $msg   = '';
 $error = '';
@@ -128,7 +122,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
                             <span class="badge <?= $claim['ai_result'] === 'damaged' ? 'bg-danger' : 'bg-success'; ?>">
                                 <?= $claim['ai_result']; ?>
                             </span>
-                            (<?= round($claim['ai_confidence']); ?>% confidence)
+                            <?php
+                            $dc = (int)($claim['damaged_count'] ?? 0);
+                            if ($dc > 0) echo "({$dc}/6 images damaged)";
+                            ?>
                         </td></tr>
                     </table>
                 </div>
@@ -144,14 +141,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
                             <td class="fw-bold">PKR <?= number_format($coverage_amount, 2); ?></td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Damage % <small class="d-block text-muted">(from damaged images)</small></td>
+                            <td class="text-muted">Damage % <small class="d-block text-muted">(area × AI)</small></td>
                             <td>
-                                <span class="badge bg-warning text-dark fs-6"><?= $damage_pct; ?>%</span>
-                                <?php
-                                $dc_label = $damage_pct === 20 ? '0–2 images damaged'
-                                          : ($damage_pct === 50 ? '3–4 images damaged' : '5–6 images damaged');
-                                ?>
-                                <small class="text-muted ms-1 d-block"><?= $dc_label; ?></small>
+                                <span class="badge bg-warning text-dark fs-6"><?= round($damage_pct, 1); ?>%</span>
+                                <?php if ($dc > 0): ?>
+                                <small class="text-muted ms-1 d-block"><?= $dc; ?>/6 images damaged</small>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <tr>

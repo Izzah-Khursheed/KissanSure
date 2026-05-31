@@ -72,10 +72,10 @@ if (isset($_POST["submit"])) {
                     <select name="applicable_crops[]" class="form-select" multiple required>
                         <option value="Wheat">Wheat</option>
                         <option value="Rice">Rice</option>
-                        <option value="Maize">Maize (Corn)</option>
-                        <option value="Cotton">Cotton</option>
-                        <option value="Soybean">Soybean</option>
-                        <option value="Other">Other</option>
+                        <!-- <option value="Maize">Maize (Corn)</option> -->
+                        <!-- <option value="Cotton">Cotton</option> -->
+                        <!-- <option value="Soybean">Soybean</option> -->
+                        <!-- <option value="Other">Other</option> -->
                     </select>
                 </div>
 

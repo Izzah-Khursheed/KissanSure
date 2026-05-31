@@ -36,6 +36,7 @@ if (isset($_POST["submit"])) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="../logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Farmer Login</title>
 
@@ -102,7 +103,7 @@ body {
     <div class="card-body">
 
         <div class="text-center mb-4">
-            <i class="fas fa-seedling fa-3x text-success mb-3"></i>
+            <img src="../logo.png" alt="KissanSure Logo" style="height: 70px; width: auto;" class="mb-3">
             <h3 class="fw-bold">Farmer Login</h3>
             <p class="text-muted">Access your insurance dashboard</p>
         </div>

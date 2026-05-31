@@ -68,7 +68,8 @@ $farmer_id = $_SESSION['farmer_id'];
 
                                     <?php
                                     $dc = (int)($row['damaged_count'] ?? 0);
-                                    $dp = round((float)($row['ai_confidence'] ?? 0), 1);
+                                    // Use combined damage_percentage (area × AI), not raw ai_confidence
+                                    $dp = round((float)($row['damage_percentage'] ?? $row['ai_confidence'] ?? 0), 1);
                                     if ($dc === 0 && $dp > 0) {
                                         $dc = (int)round($dp / 100 * 6);
                                     }
