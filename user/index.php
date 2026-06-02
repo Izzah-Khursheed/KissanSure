@@ -1,5 +1,6 @@
 <?php
 include('./include/connection.php');
+include('./include/secrets.php');
 include('./include/navbar.php');
 include('./include/carasol.php');
 ?>
@@ -297,7 +298,7 @@ include('./include/carasol.php');
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
-emailjs.init('71drxKAbw74Fgf-rG');
+emailjs.init('<?= EMAILJS_PUBLIC_KEY ?>');
 
 document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -324,7 +325,7 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
     fetch('contact_handler.php', { method: 'POST', body: formData });
 
     // Send email via EmailJS
-    emailjs.send('service_bouxaom', 'template_9yspzna', {
+    emailjs.send('<?= EMAILJS_SERVICE_ID ?>', '<?= EMAILJS_TEMPLATE_ID ?>', {
         from_name:  name,
         from_email: email,
         phone:      phone,
