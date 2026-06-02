@@ -1,6 +1,12 @@
 <?php
 include('./include/connection.php');
-include('./include/secrets.php');
+if (file_exists(__DIR__ . '/include/secrets.php')) {
+    include('./include/secrets.php');
+} else {
+    define('EMAILJS_PUBLIC_KEY',  getenv('EMAILJS_PUBLIC_KEY')  ?: '');
+    define('EMAILJS_SERVICE_ID',  getenv('EMAILJS_SERVICE_ID')  ?: '');
+    define('EMAILJS_TEMPLATE_ID', getenv('EMAILJS_TEMPLATE_ID') ?: '');
+}
 include('./include/navbar.php');
 include('./include/carasol.php');
 ?>

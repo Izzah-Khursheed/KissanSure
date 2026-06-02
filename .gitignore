@@ -1,6 +1,11 @@
 # Secret keys — never push to GitHub
 user/include/secrets.php
 
+# Python cache
+__pycache__/
+*.pyc
+ai_model/temp/*
+
 # User uploaded files — do not push to GitHub (privacy + repo size)
 admin/images/*
 admin/uploads/*
