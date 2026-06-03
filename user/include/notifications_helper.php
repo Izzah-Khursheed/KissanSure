@@ -16,8 +16,6 @@ function _notif_ensure_table($conn) {
             INDEX idx_read   (is_read)
         )
     ");
-    // Add profile_photo column to register_farmer if not already present
-    mysqli_query($conn, "ALTER TABLE register_farmer ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(255) DEFAULT NULL");
     $done = true;
 }
 
