@@ -6,5 +6,6 @@ define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_NAME', getenv('DB_NAME') ?: 'crop_insurance_one');
 
 // Base URL: empty on Railway, /KissanSure on localhost
-define('BASE_URL', getenv('BASE_URL') ?: '/KissanSure');
+$_base = getenv('BASE_URL');
+define('BASE_URL', $_base !== false ? $_base : '/KissanSure');
 
