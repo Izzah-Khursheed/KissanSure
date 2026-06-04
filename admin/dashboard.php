@@ -35,7 +35,7 @@ $r = mysqli_query($conn, "
     SELECT DATE_FORMAT(application_date, '%b %Y') AS month, COUNT(*) AS total
     FROM farmer_applications
     WHERE application_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-    GROUP BY DATE_FORMAT(application_date, '%Y-%m')
+    GROUP BY DATE_FORMAT(application_date, '%Y-%m'), DATE_FORMAT(application_date, '%b %Y')
     ORDER BY MIN(application_date) ASC
 ");
 while ($row = mysqli_fetch_assoc($r)) $app_rows[$row['month']] = (int)$row['total'];
@@ -46,7 +46,7 @@ $r2 = mysqli_query($conn, "
     SELECT DATE_FORMAT(loss_date, '%b %Y') AS month, COUNT(*) AS total
     FROM insurance_claims
     WHERE loss_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-    GROUP BY DATE_FORMAT(loss_date, '%Y-%m')
+    GROUP BY DATE_FORMAT(loss_date, '%Y-%m'), DATE_FORMAT(loss_date, '%b %Y')
     ORDER BY MIN(loss_date) ASC
 ");
 while ($row = mysqli_fetch_assoc($r2)) $claim_rows_chart[$row['month']] = (int)$row['total'];
