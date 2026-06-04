@@ -24,7 +24,7 @@ if ($row['claim_status'] !== 'Approved') {
     add_notification($conn, $row['farmer_id'], 'claim_approved',
         'Claim Approved!',
         'Your damage claim for ' . $row['crop_insured'] . ' under ' . $row['plan_name'] . ' has been approved. Check your claims page for next steps.',
-        '/KissanSure/user/view_application_claim.php'
+        BASE_URL . '/user/view_application_claim.php'
     );
 }
 

@@ -1,7 +1,11 @@
 <?php
+// Admin dashboard — shows key system stats and interactive charts.
+// All numbers are queried live from the database on each page load.
 include("./include/connection.php");
 include("./include/header.php");
 include("./include/sidebar.php");
+
+// ── STAT CARD QUERIES ──────────────────────────────────────────────────────────
 // Total Farmers
 $farmers = mysqli_fetch_assoc(mysqli_query($conn, 
     "SELECT COUNT(*) AS total FROM register_farmer"));
@@ -18,8 +22,7 @@ $pending_claims = mysqli_fetch_assoc(mysqli_query($conn,
 $approved_claims = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT COUNT(*) AS total FROM insurance_claims WHERE claim_status='Approved'"));
 
-// --- Chart Data ---
-
+// ── CHART DATA ─────────────────────────────────────────────────────────────────
 // Last 6 month labels
 $labels = [];
 for ($i = 5; $i >= 0; $i--) {
@@ -66,6 +69,7 @@ while ($row = mysqli_fetch_assoc($r3)) {
     $plan_data[]   = (int)$row['total'];
 }
 
+// ── SECOND ROW STAT CARDS ──────────────────────────────────────────────────────
 // --- Extra Stat Cards ---
 $active_policies = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT COUNT(*) AS total FROM farmer_applications WHERE status = 'Active'"));
@@ -79,7 +83,7 @@ $total_payouts = mysqli_fetch_assoc(mysqli_query($conn,
 $under_review = mysqli_fetch_assoc(mysqli_query($conn,
     "SELECT COUNT(*) AS total FROM insurance_claims WHERE claim_status IN ('AI Analyzed','Under Review')"));
 
-// Claims by Status
+// Breakdown of claims grouped by their current status (for the doughnut chart)
 $claim_status_labels = [];
 $claim_status_data   = [];
 $r4 = mysqli_query($conn, "SELECT claim_status, COUNT(*) AS total FROM insurance_claims GROUP BY claim_status ORDER BY total DESC");

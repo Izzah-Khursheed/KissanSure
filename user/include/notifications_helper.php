@@ -58,7 +58,7 @@ function notif_check_premium_reminder($conn, $farmer_id) {
     add_notification($conn, $fid, 'premium_reminder',
         'Premium Payment Pending',
         'Your insurance plan is not yet active. Pay your premium to activate your coverage.',
-        '/KissanSure/user/view_application_invoice.php?id=' . $app['application_id']
+        BASE_URL . '/user/view_application_invoice.php?id=' . $app['application_id']
     );
 }
 

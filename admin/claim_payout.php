@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['issue_payout'])) {
                 add_notification($conn, $claim['farmer_id'], 'payout_sent',
                     'Claim Payout Sent!',
                     'Your payout of PKR ' . number_format($final_payout, 2) . ' for your ' . $claim['plan_name'] . ' (' . $claim['crop_insured'] . ') claim has been processed. View your receipt now.',
-                    '/KissanSure/user/view_claim_payout.php?claim_id=' . $claim_id
+                    BASE_URL . '/user/view_claim_payout.php?claim_id=' . $claim_id
                 );
                 $msg = '<div class="alert alert-success">Payout issued successfully. Farmer can now view the receipt.</div>';
                 $claim['payout_status'] = 'Sent';

@@ -40,7 +40,7 @@
                 </div>
                 <div class="col-lg-3 col-md-6 text-center">
                     <h1 class="display-5 text-primary m-0 mb-4">KissanSure</h1>
-                    <img src="/KissanSure/logo.png" alt="KissanSure Logo" class="img-fluid" style="max-width: 150px;">
+                    <img src="<?= BASE_URL ?>/logo.png" alt="KissanSure Logo" class="img-fluid" style="max-width: 150px;">
                 </div>
             </div>
             <div class="copyright pt-5">
@@ -85,7 +85,7 @@
 
         function doMarkAll() {
             var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/KissanSure/user/mark_notification_read.php', true);
+            xhr.open('POST', '<?= BASE_URL ?>/user/mark_notification_read.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
                 if (xhr.status === 200) {

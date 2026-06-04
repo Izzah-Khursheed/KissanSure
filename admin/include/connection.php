@@ -9,4 +9,6 @@ $conn = mysqli_connect(
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+define('BASE_URL', getenv('BASE_URL') ?: '/KissanSure');
 ?>

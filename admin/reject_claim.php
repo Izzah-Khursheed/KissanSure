@@ -24,7 +24,7 @@ if ($row['claim_status'] !== 'Rejected') {
     add_notification($conn, $row['farmer_id'], 'claim_rejected',
         'Claim Rejected',
         'Your damage claim for ' . $row['crop_insured'] . ' under ' . $row['plan_name'] . ' has been rejected. Visit the claims page for details.',
-        '/KissanSure/user/view_application_claim.php'
+        BASE_URL . '/user/view_application_claim.php'
     );
 }
 

@@ -85,8 +85,8 @@ $farmerName = ucwords(strtolower($farmer['name']));
             <div class="d-flex align-items-center gap-4 flex-wrap">
                 <?php
                 $profilePhoto = !empty($farmer['profile_photo'])
-                    ? '/KissanSure/user/uploads/profiles/' . htmlspecialchars($farmer['profile_photo'])
-                    : '/KissanSure/profile_user.jpg';
+                    ? BASE_URL . '/user/uploads/profiles/' . htmlspecialchars($farmer['profile_photo'])
+                    : BASE_URL . '/profile_user.jpg';
                 ?>
                 <form method="POST" enctype="multipart/form-data" class="position-relative flex-shrink-0">
                     <img src="<?= $profilePhoto; ?>"

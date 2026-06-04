@@ -18,7 +18,7 @@ if ($row && $row['claim_status'] !== 'Under Review') {
     add_notification($conn, $row['farmer_id'], 'claim_under_review',
         'Claim Under Review',
         'Your damage claim for ' . $row['crop_insured'] . ' under ' . $row['plan_name'] . ' is currently under review. You will be notified once a decision is made.',
-        '/KissanSure/user/view_application_claim.php'
+        BASE_URL . '/user/view_application_claim.php'
     );
 } else {
     mysqli_query($conn, "UPDATE insurance_claims SET claim_status = 'Under Review' WHERE claim_id = $id");

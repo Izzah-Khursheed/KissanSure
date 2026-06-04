@@ -115,7 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application']) 
         add_notification($conn, $farmer_id, 'premium_reminder',
             'Premium Payment Required',
             'Application submitted! Pay PKR ' . number_format($final_premium, 2) . ' to activate your insurance plan.',
-            '/KissanSure/user/view_application_invoice.php?id=' . $new_app_id
+            BASE_URL . '/user/view_application_invoice.php?id=' . $new_app_id
         );
 
         // Redirect straight to invoice so farmer sees premium immediately

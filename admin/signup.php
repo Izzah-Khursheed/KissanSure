@@ -1,4 +1,6 @@
 <?php
+// Admin account creation page. Creates a new record in the `users` table with a bcrypt-hashed password.
+// Only used to set up new admin accounts; not accessible from the main admin menu.
 session_start();
 include("./include/connection.php");
 
@@ -11,16 +13,21 @@ if (isset($_POST['submit'])) {
     $password = $_POST['password'];
     $confirm  = $_POST['confirm'];
 
+    // Validate that both password fields match before hashing
     if ($password !== $confirm) {
         $signup_error = "Passwords do not match. Please try again.";
     } else {
+        // Hash the password before storing it
         $hashed = password_hash($password, PASSWORD_DEFAULT);
+
+        // Prevent duplicate usernames
         $check  = "SELECT * FROM users WHERE name='$name'";
         $res    = mysqli_query($conn, $check);
 
         if (mysqli_num_rows($res) > 0) {
             $signup_error = "Username already exists. Please choose a different one.";
         } else {
+            // Insert the new admin account and redirect to dashboard
             $sql = "INSERT INTO users (name, password) VALUES ('$name', '$hashed')";
             if (mysqli_query($conn, $sql)) {
                 $_SESSION['flash'] = ['msg' => 'Admin account created successfully.', 'type' => 'success'];

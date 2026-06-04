@@ -44,7 +44,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'verify') {
         add_notification($conn, $app['farmer_id'], 'plan_active',
             'Insurance Plan Activated!',
             'Congratulations! Your premium payment has been verified and your insurance plan is now Active.',
-            '/KissanSure/user/view_application_plan.php'
+            BASE_URL . '/user/view_application_plan.php'
         );
     }
     $msg = '<div class="alert alert-success">Payment verified. Policy is now <strong>Active</strong>.</div>';
@@ -71,7 +71,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'reject') {
         add_notification($conn, $app['farmer_id'], 'payment_rejected',
             'Payment Rejected',
             'Your premium payment was rejected.' . $reason_text . ' Please resubmit your payment proof.',
-            '/KissanSure/user/view_application_plan.php'
+            BASE_URL . '/user/view_application_plan.php'
         );
     }
     $msg = '<div class="alert alert-warning">Payment rejected. Farmer will be asked to resubmit.</div>';

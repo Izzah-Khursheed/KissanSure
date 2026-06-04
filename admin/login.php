@@ -1,4 +1,6 @@
 <?php
+// Admin login page. Authenticates against the `users` table using bcrypt password_verify.
+// On success, stores user_id / name / role in session and redirects to dashboard.
 session_start();
 include("./include/connection.php");
 
@@ -6,16 +8,20 @@ $login_error = '';
 
 if (isset($_POST["submit"])) {
 
+    // Sanitise inputs before using them in the SQL query
     $farmername    = mysqli_real_escape_string($conn, $_POST["farmername"]);
     $farmerpassword = mysqli_real_escape_string($conn, $_POST["farmerpassword"]);
 
+    // Look up admin by username (stored in the `users` table, not register_farmer)
     $sql    = "SELECT * FROM users WHERE name='$farmername'";
     $result = mysqli_query($conn, $sql);
 
     if (mysqli_num_rows($result) == 1) {
         $user = mysqli_fetch_assoc($result);
 
+        // Verify password against the bcrypt hash stored in the database
         if (password_verify($farmerpassword, $user['password'])) {
+            // Store admin identity in session so other pages can check login status
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['name']    = $user['name'];
             $_SESSION['role']    = $user['role'];

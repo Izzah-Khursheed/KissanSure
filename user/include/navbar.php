@@ -10,7 +10,7 @@
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="/KissanSure/logo.png" rel="icon" type="image/png">
+    <link href="<?= BASE_URL ?>/logo.png" rel="icon" type="image/png">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -154,12 +154,12 @@
                                 "SELECT profile_photo FROM register_farmer WHERE farmerid = " . (int)$_SESSION['farmer_id']
                             ));
                             $navPhoto = !empty($navPhotoRow['profile_photo'])
-                                ? '/KissanSure/user/uploads/profiles/' . htmlspecialchars($navPhotoRow['profile_photo'])
-                                : '/KissanSure/profile_user.jpg';
+                                ? BASE_URL . '/user/uploads/profiles/' . htmlspecialchars($navPhotoRow['profile_photo'])
+                                : BASE_URL . '/profile_user.jpg';
                         } else {
                             $notif_count = 0;
                             $notif_items = [];
-                            $navPhoto    = '/KissanSure/profile_user.jpg';
+                            $navPhoto    = BASE_URL . '/profile_user.jpg';
                         }
                     ?>
                     <div class="ms-auto">

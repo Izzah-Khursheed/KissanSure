@@ -1,3 +1,6 @@
+# ML prediction module — loads the pre-trained MobileNetV2 models and classifies
+# crop images as "damaged" or "healthy". Called by main.py for every uploaded image.
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,6 +8,7 @@ from torchvision import transforms
 from torchvision.models import mobilenet_v2
 from PIL import Image
 
+# Use GPU if available (Railway/cloud), otherwise fall back to CPU
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # ───────────────────────────────────────────────────────────────
@@ -12,8 +16,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 # One model per supported crop. Add new crops below.
 # ───────────────────────────────────────────────────────────────
 
+# Binary class labels — index 0 = damaged, index 1 = healthy
 _clf_classes = ['damaged', 'healthy']
 
+# Standard ImageNet preprocessing applied to every input image before inference
 _clf_transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -23,6 +29,7 @@ _clf_transform = transforms.Compose([
 
 
 def _load_classifier(model_path):
+    # Replace the final FC layer with a 2-class output head, then load saved weights
     model = mobilenet_v2()
     model.classifier[1] = nn.Linear(model.last_channel, 2)
     model.load_state_dict(torch.load(model_path, map_location=device))
@@ -31,7 +38,7 @@ def _load_classifier(model_path):
     return model
 
 
-# -- load models at startup --
+# -- load models at startup (once when the server starts, not per request) --
 rice_model  = _load_classifier("rice_classification_model.pth")
 wheat_model = _load_classifier("wheat_classification_model.pth")
 
